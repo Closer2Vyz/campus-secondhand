@@ -4,8 +4,8 @@
 const path = require('path');
 
 module.exports = {
-  // 服务端口
-  port: 3000,
+  // 服务端口（Railway 会通过 PORT 环境变量指定）
+  port: process.env.PORT || 3000,
 
   // JWT 密钥
   jwtSecret: 'campus-secondhand-jwt-secret-2025',

@@ -4,6 +4,9 @@ const path = require('path');
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DB_PATH = path.join(DATA_DIR, 'data.db');
 
+// 确保数据库目录存在
+try { require('fs').mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
+
 let db;
 
 function getDB() {
