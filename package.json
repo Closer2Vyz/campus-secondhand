@@ -1,0 +1,9 @@
+{
+  "name": "campus-secondhand",
+  "version": "1.0.0",
+  "scripts": {
+    "install": "cd server && npm install",
+    "build": "",
+    "start": "cd server && node app.js"
+  }
+}
