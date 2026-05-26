@@ -6,7 +6,7 @@
  * 预览/生产 → 改为已备案的 HTTPS 域名
  */
 const CONFIG = {
-  baseURL: 'http://192.168.1.103:3000',
+  baseURL: 'https://campus-secondhand-production-023e.up.railway.app',
 };
 
 module.exports = CONFIG;
