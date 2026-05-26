@@ -21,6 +21,9 @@ Page({
     var app = getApp();
     if (!app || !app.globalData || !app.globalData.token) {
       wx.showToast({ title: '请先登录', icon: 'none' });
+      setTimeout(function() {
+        wx.switchTab({ url: '/pages/profile/profile' });
+      }, 1000);
     }
   },
 
@@ -86,6 +89,13 @@ Page({
 
   onPublish: function() {
     var that = this;
+    var app = getApp();
+    if (!app || !app.globalData || !app.globalData.token) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.switchTab({ url: '/pages/profile/profile' });
+      return;
+    }
+
     var title = this.data.title;
     var description = this.data.description;
     var price = this.data.price;

@@ -6,6 +6,7 @@ Page({
     userInfo: {},
     showMockLogin: false,
     showFeedback: false,
+    isAdmin: false,
     showEditModal: false,
     editNickname: '',
     editCampus: '',
@@ -17,6 +18,18 @@ Page({
 
   onShow: function() {
     var app = getApp();
+    var that = this;
+    // 检查是否为管理员
+    wx.cloud.callFunction({
+      name: 'admin',
+      data: { action: 'checkAdmin' },
+      success: function(res) {
+        if (res.result && res.result.data && res.result.data.isAdmin) {
+          that.setData({ isAdmin: true });
+        }
+      },
+      fail: function() {},
+    });
     var token = (app && app.globalData && app.globalData.token) || wx.getStorageSync('token');
     var userInfo = (app && app.globalData && app.globalData.userInfo) || wx.getStorageSync('userInfo');
 
@@ -98,6 +111,10 @@ Page({
 
   onCloseFeedback: function() {
     this.setData({ showFeedback: false });
+  },
+
+  goToAdmin: function() {
+    wx.navigateTo({ url: '/pages/admin/admin' });
   },
 
   goToFavorites: function() {

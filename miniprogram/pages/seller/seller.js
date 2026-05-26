@@ -1,5 +1,4 @@
 var api = require('../../utils/api');
-var CONFIG = require('../../utils/config');
 var util = require('../../utils/util');
 
 Page({
@@ -41,7 +40,7 @@ Page({
           id: item.id,
           title: item.title,
           priceText: util.formatPrice(item.price),
-          firstImage: item.images && item.images.length > 0 ? CONFIG.baseURL + item.images[0] : '/assets/placeholder.png',
+          firstImage: item.images && item.images.length > 0 ? item.images[0] : '/assets/placeholder.png',
         });
       }
 
@@ -59,7 +58,7 @@ Page({
         items: itemList,
         pageLoaded: true,
         avatarChar: (user.nickname || '?').substring(0, 1),
-        avatarUrl: user.avatar ? CONFIG.baseURL + user.avatar : '',
+        avatarUrl: user.avatar || '',
         hasAvatar: !!user.avatar,
         starsText: stars,
         ratingText: data.ratingCount + '条评价 · ' + score + '分',

@@ -1,12 +1,11 @@
 var api = require('../../utils/api');
-var CONFIG = require('../../utils/config');
 var util = require('../../utils/util');
 
 Page({
   data: {
     darkMode: false,
     order: {},
-    serverURL: CONFIG.baseURL,
+    serverURL: '',
     isBuyer: false,
     isSeller: false,
     statusIcon: '',

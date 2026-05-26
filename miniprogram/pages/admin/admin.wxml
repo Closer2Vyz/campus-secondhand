@@ -1,0 +1,22 @@
+<view class="page">
+  <view class="card">
+    <text style="font-size:32rpx;font-weight:700;color:#333;display:block;margin-bottom:24rpx;">📢 发布公告</text>
+    <input placeholder="公告标题" bindinput="onTitleInput" value="{{annTitle}}" style="width:100%;background:#f8f8f8;border-radius:16rpx;padding:24rpx 28rpx;font-size:28rpx;color:#333;border:2rpx solid transparent;box-sizing:border-box;margin-bottom:16rpx;" />
+    <textarea placeholder="公告内容" bindinput="onContentInput" value="{{annContent}}" style="width:100%;background:#f8f8f8;border-radius:16rpx;padding:24rpx 28rpx;font-size:28rpx;color:#333;border:2rpx solid transparent;box-sizing:border-box;height:200rpx;margin-bottom:16rpx;" />
+    <button bindtap="onPostAnnouncement" style="background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:50rpx;padding:22rpx;font-size:28rpx;font-weight:600;border:none;">发布公告</button>
+  </view>
+
+  <view class="card">
+    <text style="font-size:32rpx;font-weight:700;color:#333;display:block;margin-bottom:24rpx;">🖼️ 更新广告图</text>
+    <text style="font-size:24rpx;color:#bbb;display:block;margin-bottom:16rpx;">选择位置（第几个轮播图）</text>
+    <picker range="{{['第1张','第2张','第3张']}}" bindchange="onBannerIndexChange">
+      <view style="background:#f8f8f8;border-radius:16rpx;padding:24rpx 28rpx;font-size:28rpx;color:#333;margin-bottom:16rpx;">{{'第' + (bannerIndex + 1) + '张'}}</view>
+    </picker>
+    <button bindtap="onUpdateBanner" style="background:#07c160;color:#fff;border-radius:50rpx;padding:22rpx;font-size:28rpx;font-weight:600;border:none;">从相册选择图片上传</button>
+  </view>
+
+  <view class="card">
+    <text style="font-size:32rpx;font-weight:700;color:#333;display:block;margin-bottom:24rpx;">📱 更新群二维码</text>
+    <button bindtap="onUpdateQR" style="background:#07c160;color:#fff;border-radius:50rpx;padding:22rpx;font-size:28rpx;font-weight:600;border:none;">从相册选择二维码上传</button>
+  </view>
+</view>

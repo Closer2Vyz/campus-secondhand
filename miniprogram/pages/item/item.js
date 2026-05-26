@@ -11,7 +11,7 @@ Page({
     stockText: '',
     darkMode: false,
     item: {},
-    serverURL: CONFIG.baseURL,
+    serverURL: '',
     priceText: '',
     timeText: '',
     descText: '',

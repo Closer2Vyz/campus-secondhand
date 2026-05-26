@@ -16,7 +16,7 @@
       </view>
       <view class="list-actions">
         <button class="action-btn" wx:if="{{activeTab === 'active'}}" bindtap="onSoldIt" data-id="{{item.id}}">标记已售</button>
-        <button class="action-btn danger" wx:if="{{activeTab !== 'active'}}" bindtap="onDeleteItem" data-id="{{item.id}}">🗑️ 删除</button>
+        <button class="action-btn danger" bindtap="onDeleteItem" data-id="{{item.id}}">🗑️ 删除</button>
       </view>
     </view>
   </view>

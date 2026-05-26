@@ -1,5 +1,4 @@
 var api = require('../../utils/api');
-var CONFIG = require('../../utils/config');
 var util = require('../../utils/util');
 
 Page({
@@ -7,7 +6,7 @@ Page({
     orders: [],
     activeTab: 'buy',
     darkMode: false,
-    serverURL: CONFIG.baseURL,
+    serverURL: '',
   },
 
   onShow: function() {

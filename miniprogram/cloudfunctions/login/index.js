@@ -4,7 +4,7 @@ const db = cloud.database();
 const users = db.collection('users');
 
 exports.main = async (event, context) => {
-  const { wxContext } = cloud.getWXContext();
+  const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
 
   // 查找或创建用户
