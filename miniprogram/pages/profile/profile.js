@@ -1,5 +1,4 @@
 var api = require('../../utils/api');
-var CONFIG = require('../../utils/config');
 
 Page({
   data: {
@@ -13,7 +12,7 @@ Page({
     editAvatar: '',
     mockId: '',
     avatarChar: 'U',
-    serverURL: CONFIG.baseURL,
+    serverURL: '',
   },
 
   onShow: function() {
@@ -42,17 +41,24 @@ Page({
 
   onLogin: function() {
     var that = this;
-    wx.login({
-      success: function(res) {
-        if (res.code) {
-          that.doLogin(res.code, '');
-        } else {
-          wx.showToast({ title: '登录失败', icon: 'none' });
-        }
-      },
-      fail: function() {
-        that.setData({ showMockLogin: true });
-      },
+    wx.showLoading({ title: '登录中...' });
+    api.login().then(function(data) {
+      wx.hideLoading();
+      var app = getApp();
+      if (!app || !app.globalData) return;
+      app.globalData.token = data.token;
+      app.globalData.userInfo = data.user;
+      wx.setStorageSync('token', data.token);
+      wx.setStorageSync('userInfo', data.user);
+      that.setData({
+        isLoggedIn: true,
+        userInfo: data.user,
+        avatarChar: (data.user.nickname || 'U').substring(0, 1),
+      });
+      wx.showToast({ title: '登录成功', icon: 'success' });
+    }).catch(function(err) {
+      wx.hideLoading();
+      wx.showToast({ title: err || '登录失败', icon: 'none' });
     });
   },
 
@@ -66,7 +72,7 @@ Page({
 
   doLogin: function(code, mockOpenid) {
     var that = this;
-    api.login(code, mockOpenid).then(function(data) {
+    api.login().then(function(data) {
       var app = getApp();
       if (!app || !app.globalData) return;
       app.globalData.token = data.token;
@@ -132,13 +138,14 @@ Page({
       sourceType: ['album', 'camera'],
       success: function(res) {
         wx.showLoading({ title: '上传中...' });
-        api.uploadAvatar(res.tempFilePaths[0]).then(function(data) {
+        api.uploadFile(res.tempFilePaths[0]).then(function(data) {
           wx.hideLoading();
           var app = getApp();
           if (app && app.globalData && app.globalData.userInfo) {
-            app.globalData.userInfo.avatar = data.avatar;
+            app.globalData.userInfo.avatar = data.fileID;
           }
-          that.setData({ editAvatar: data.avatar });
+          that.setData({ editAvatar: data.fileID });
+          api.updateProfile({ avatar: data.fileID });
           that.loadUserInfo();
           wx.showToast({ title: '头像已更新', icon: 'success' });
         }).catch(function(err) {

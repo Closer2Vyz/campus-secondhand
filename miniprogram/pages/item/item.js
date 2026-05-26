@@ -1,5 +1,4 @@
 var api = require('../../utils/api');
-var CONFIG = require('../../utils/config');
 var util = require('../../utils/util');
 
 Page({
@@ -60,51 +59,25 @@ Page({
         }).catch(function() {});
       }
 
-      // 预下载商品图片到手机本地（真机调试图片不走代理，需 wx.downloadFile）
-      var localImages = [];
-      var images = item.images || [];
-      var loaded = 0;
+      // 云存储 fileID 可以直接使用
+      var localImages = item.images || [];
+      var loaded = localImages.length;
 
       // 加载评论
       that.loadComments(id);
 
-      function setPageData() {
-        that.setData({
-          item: item,
-          pageLoaded: true,
-          loadFailed: false,
-          hasImages: localImages.length > 0,
-          localImages: localImages,
-          sellerChar: (item.sellerName || '?').substring(0, 1),
-          priceText: '¥' + Number(item.price).toFixed(2),
-          timeText: util.formatTime(item.createdAt),
-          descText: item.description || '',
-          stockText: that.getStockText(item),
-        });
-      }
-
-      if (images.length === 0) {
-        setPageData();
-        return;
-      }
-
-      for (var i = 0; i < images.length; i++) {
-        (function(idx) {
-          wx.downloadFile({
-            url: CONFIG.baseURL + images[idx],
-            success: function(res) {
-              localImages[idx] = res.tempFilePath;
-              loaded++;
-              if (loaded >= images.length) setPageData();
-            },
-            fail: function() {
-              localImages[idx] = CONFIG.baseURL + images[idx];
-              loaded++;
-              if (loaded >= images.length) setPageData();
-            },
-          });
-        })(i);
-      }
+      that.setData({
+        item: item,
+        pageLoaded: true,
+        loadFailed: false,
+        hasImages: localImages.length > 0,
+        localImages: localImages,
+        sellerChar: (item.sellerName || '?').substring(0, 1),
+        priceText: '¥' + Number(item.price).toFixed(2),
+        timeText: util.formatTime(item.createdAt),
+        descText: item.description || '',
+        stockText: that.getStockText(item),
+      });
     }).catch(function() {
       that.setData({ loadFailed: true, pageLoaded: true });
     });
@@ -232,13 +205,9 @@ Page({
   },
 
   onPreviewImage: function(e) {
-    var urls = [];
     var images = this.data.item.images || [];
-    for (var i = 0; i < images.length; i++) {
-      urls.push(this.data.serverURL + images[i]);
-    }
     var idx = e.currentTarget.dataset.index || 0;
-    wx.previewImage({ current: urls[idx], urls: urls });
+    wx.previewImage({ current: images[idx], urls: images });
   },
 
   getStockText: function(item) {

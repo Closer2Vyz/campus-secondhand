@@ -17,5 +17,8 @@
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudfunctionTemplateRoot": "cloudfunctions/",
+  "cloudfunctionEnvironmentRoot": "cloud1-d1gya8x7686e5e446"
 }

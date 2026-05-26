@@ -138,64 +138,32 @@ Page({
 
   uploadWithImages: function(onSuccess, onError) {
     var that = this;
-    var title = this.data.title;
-    var description = this.data.description;
-    var price = this.data.price;
-    var category = this.data.category;
-    var contact = this.data.contact;
-    var stock = this.data.stock;
     var images = this.data.images;
-    var app = getApp();
-    var token = (app && app.globalData && app.globalData.token) || '';
-    var CONFIG = require('../../utils/config');
-    var uploadUrl = CONFIG.baseURL + '/api/items';
+    var uploaded = 0;
+    var fileIds = [];
 
-    wx.uploadFile({
-      url: uploadUrl,
-      filePath: images[0],
-      name: 'images',
-      formData: {
-        title: title.trim(),
-        description: description.trim(),
-        price: String(Number(price)),
-        category: category,
-        contact: contact.trim(),
-        stock: String(stock),
-      },
-      header: { 'Authorization': 'Bearer ' + token },
-      success: function(res) {
-        try {
-          var data = JSON.parse(res.data);
-          if (data.code === 0) {
-            if (images.length <= 1) {
-              onSuccess();
-              return;
-            }
-            var uploaded = 0;
-            for (var i = 1; i < images.length; i++) {
-              (function(idx) {
-                wx.uploadFile({
-                  url: CONFIG.baseURL + '/api/items/' + data.data.id,
-                  filePath: images[idx],
-                  name: 'images',
-                  formData: { existingImages: JSON.stringify([]) },
-                  header: { 'Authorization': 'Bearer ' + token },
-                  success: function() {
-                    uploaded++;
-                    if (uploaded >= images.length - 1) onSuccess();
-                  },
-                  fail: function() { onError('图片上传失败'); },
-                });
-              })(i);
-            }
-          } else {
-            onError(data.message);
-          }
-        } catch (e) {
-          onError('上传失败');
-        }
-      },
-      fail: function() { onError('上传失败'); },
-    });
+    // 逐张上传到云存储
+    function uploadNext(i) {
+      if (i >= images.length) {
+        // 全部上传完成，提交商品数据
+        api.publishItem({
+          title: that.data.title.trim(),
+          description: that.data.description.trim(),
+          price: Number(that.data.price),
+          category: that.data.category,
+          contact: that.data.contact.trim(),
+          stock: that.data.stock,
+          images: fileIds,
+        }).then(onSuccess).catch(onError);
+        return;
+      }
+      api.uploadFile(images[i]).then(function(res) {
+        fileIds.push(res.fileID);
+        uploadNext(i + 1);
+      }).catch(function() {
+        onError('图片上传失败');
+      });
+    }
+    uploadNext(0);
   },
 });

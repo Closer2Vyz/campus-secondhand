@@ -1,12 +1,13 @@
 /**
- * API 配置
- *
- * 模拟器 → http://localhost:3000
- * 真机调试 → 改为电脑当前局域网 IP（可在终端输入 ifconfig | grep inet 查看）
- * 预览/生产 → 改为已备案的 HTTPS 域名
+ * 云开发配置
+ * 图片使用云存储 fileID，不需要 baseURL
  */
 const CONFIG = {
-  baseURL: 'https://campus-secondhand-production-023e.up.railway.app',
+  // 保留用于兼容旧的 HTTP 图片链接（后续可清空）
+  baseURL: '',
 };
+
+// 云环境 ID（替换为你的云环境ID）
+const CLOUD_ENV = 'campus-secondhand';
 
 module.exports = CONFIG;

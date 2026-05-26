@@ -1,5 +1,4 @@
 var api = require('../../utils/api');
-var CONFIG = require('../../utils/config');
 var util = require('../../utils/util');
 
 Page({
@@ -18,7 +17,7 @@ Page({
     hasMore: false,
     loading: false,
     loadError: false,
-    serverURL: CONFIG.baseURL,
+    serverURL: '',
     itemThumbs: [], // wx.downloadFile 下载后的本地图片路径
     announcement: null,
     showAnnouncement: false,
@@ -69,26 +68,18 @@ Page({
         list.push(that.formatItem(rawList[i]));
       }
 
+      // 云存储 fileID 直接使用
+      var thumbs = [];
+      for (var i = 0; i < list.length; i++) {
+        thumbs.push(list[i].images[0] || '');
+      }
       that.setData({
         items: list,
         hasMore: res.page < res.totalPages,
         loading: false,
         loadError: false,
-        itemThumbs: new Array(list.length).fill(''),
+        itemThumbs: thumbs,
       });
-
-      // 预下载商品缩略图（真机调试图片不走代理）
-      for (var i = 0; i < list.length; i++) {
-        (function(idx, imgUrl) {
-          if (!imgUrl) return;
-          wx.downloadFile({
-            url: CONFIG.baseURL + imgUrl,
-            success: function(res) {
-              that.setData({ ['itemThumbs[' + idx + ']']: res.tempFilePath });
-            },
-          });
-        })(i, list[i].images[0]);
-      }
     }).catch(function() {
       that.setData({ loading: false, loadError: true });
       if (that.data.items.length === 0) {
@@ -166,25 +157,16 @@ Page({
       }
 
       var startIdx = that.data.items.length;
+      var thumbs = that.data.itemThumbs;
+      for (var i = 0; i < list.length; i++) {
+        thumbs.push(list[i].images[0] || '');
+      }
       that.setData({
         items: that.data.items.concat(list),
-        itemThumbs: that.data.itemThumbs.concat(new Array(list.length).fill('')),
+        itemThumbs: thumbs,
         hasMore: res.page < res.totalPages,
         loading: false,
       });
-
-      // 预下载新加载的图片
-      for (var i = 0; i < list.length; i++) {
-        (function(idx, imgUrl) {
-          if (!imgUrl) return;
-          wx.downloadFile({
-            url: CONFIG.baseURL + imgUrl,
-            success: function(res) {
-              that.setData({ ['itemThumbs[' + (startIdx + idx) + ']']: res.tempFilePath });
-            },
-          });
-        })(i, list[i].images[0]);
-      }
     }).catch(function() {
       that.setData({ loading: false });
       wx.showToast({ title: '加载更多失败', icon: 'none' });

@@ -1,6 +1,7 @@
 {
   "libVersion": "3.15.2",
   "projectname": "校内二手集市",
+  "cloudfunctionEnvironmentRoot": "cloud1-d1gya8x7686e5e446",
   "setting": {
     "urlCheck": false
   }

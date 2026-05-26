@@ -8,7 +8,7 @@
 
   <view class="list">
     <view class="list-item" wx:for="{{items}}" wx:key="id">
-      <image class="list-img" src="{{item.images && item.images.length > 0 ? serverURL + item.images[0] : '/assets/placeholder.png'}}" mode="aspectFill" />
+      <image class="list-img" src="{{item.images && item.images.length > 0 ? item.images[0] : '/assets/placeholder.png'}}" mode="aspectFill" />
       <view class="list-info">
         <text class="list-title">{{item.title}}</text>
         <text class="list-price">{{formatPrice(item.price)}}</text>

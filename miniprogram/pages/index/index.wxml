@@ -46,7 +46,7 @@
   <view class="item-list">
     <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
       <view class="item-card-inner">
-        <image class="item-image" src="{{itemThumbs[index] || serverURL + item.images[0]}}" mode="aspectFill" wx:if="{{item.images.length > 0}}" />
+        <image class="item-image" src="{{itemThumbs[index] || item.images[0]}}" mode="aspectFill" wx:if="{{item.images.length > 0}}" />
         <image class="item-image" src="/assets/placeholder.png" mode="aspectFill" wx:else />
         <view class="item-tag">{{item.category}}</view>
         <view class="item-info">

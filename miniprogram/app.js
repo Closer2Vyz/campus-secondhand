@@ -1,3 +1,9 @@
+// 云开发初始化
+wx.cloud.init({
+  env: 'cloud1-d1gya8x7686e5e446',
+  traceUser: true,
+});
+
 App({
   globalData: {
     userInfo: null,
