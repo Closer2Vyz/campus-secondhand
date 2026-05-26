@@ -231,9 +231,9 @@ router.delete('/:id', authMiddleware, (req, res) => {
   if (!item) return res.json({ code: 404, message: '商品不存在' });
   if (item.sellerId !== req.userId) return res.json({ code: 403, message: '无权操作' });
 
-  db.prepare("UPDATE items SET status = 'sold', updatedAt = datetime('now','localtime') WHERE id = ?").run(req.params.id);
+  db.prepare('DELETE FROM items WHERE id = ?').run(req.params.id);
 
-  res.json({ code: 0, message: '已下架' });
+  res.json({ code: 0, message: '已删除' });
 });
 
 /**

@@ -14,8 +14,9 @@
         <text class="list-price">{{formatPrice(item.price)}}</text>
         <text class="list-status tag-{{item.status}}">{{itemStatusText(item.status)}}</text>
       </view>
-      <view class="list-actions" wx:if="{{activeTab === 'active'}}">
-        <button class="action-btn" bindtap="onSoldIt" data-id="{{item.id}}">标记已售</button>
+      <view class="list-actions">
+        <button class="action-btn" wx:if="{{activeTab === 'active'}}" bindtap="onSoldIt" data-id="{{item.id}}">标记已售</button>
+        <button class="action-btn danger" wx:if="{{activeTab !== 'active'}}" bindtap="onDeleteItem" data-id="{{item.id}}">🗑️ 删除</button>
       </view>
     </view>
   </view>

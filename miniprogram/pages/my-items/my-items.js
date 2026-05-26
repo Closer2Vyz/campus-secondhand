@@ -49,6 +49,25 @@ Page({
     }
   },
 
+  onDeleteItem: function(e) {
+    var that = this;
+    var id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '删除商品',
+      content: '确定删除该商品？此操作不可恢复',
+      success: function(res) {
+        if (res.confirm) {
+          api.deleteItem(id).then(function() {
+            wx.showToast({ title: '已删除', icon: 'success' });
+            that.loadItems();
+          }).catch(function(err) {
+            wx.showToast({ title: err || '删除失败', icon: 'none' });
+          });
+        }
+      },
+    });
+  },
+
   onSoldIt: function(e) {
     var that = this;
     var id = e.currentTarget.dataset.id;

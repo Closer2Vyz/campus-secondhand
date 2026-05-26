@@ -84,5 +84,13 @@ page { background: #f8f8f8; }
   padding: 14rpx 28rpx;
   border-radius: 30rpx;
   border: none;
+  margin-bottom: 8rpx;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.action-btn.danger {
+  background: #ff4d4f;
   font-weight: 500;
 }
