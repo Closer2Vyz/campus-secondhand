@@ -1,6 +1,8 @@
 /**
  * 平台配置
  */
+const path = require('path');
+
 module.exports = {
   // 服务端口
   port: 3000,
@@ -16,7 +18,7 @@ module.exports = {
 
   // 图片上传配置
   upload: {
-    dir: 'uploads',
+    dir: process.env.DATA_DIR ? path.join(process.env.DATA_DIR, 'uploads') : 'uploads',
     maxCount: 6,           // 每件商品最多 6 张图
     maxSize: 5 * 1024 * 1024, // 单张 5MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
