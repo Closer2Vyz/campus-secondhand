@@ -1,0 +1,100 @@
+/* ===== 订单详情 ===== */
+page { background: #f8f8f8; }
+
+/* 状态栏 */
+.status-bar {
+  display: flex;
+  align-items: center;
+  padding: 36rpx 28rpx;
+  gap: 20rpx;
+  margin: 0 24rpx 20rpx;
+  border-radius: 24rpx;
+}
+
+.bg-pending { background: linear-gradient(135deg, #fff7e6, #fff3d6); }
+.bg-completed { background: linear-gradient(135deg, #e8f5e9, #d7f0d8); }
+.bg-cancelled { background: linear-gradient(135deg, #fff0f0, #ffe5e5); }
+
+.status-icon {
+  font-size: 44rpx;
+  width: 72rpx;
+  height: 72rpx;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  text-align: center;
+  line-height: 72rpx;
+  flex-shrink: 0;
+}
+
+.status-texts { flex: 1; }
+.status-title { font-size: 32rpx; font-weight: 700; color: #333; display: block; }
+.status-desc { font-size: 24rpx; color: #888; margin-top: 6rpx; display: block; }
+
+/* 卡片 */
+.order-item {
+  display: flex;
+  gap: 20rpx;
+}
+
+.oi-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.oi-info { flex: 1; }
+.oi-title { font-size: 30rpx; color: #333; font-weight: 600; display: block; margin-bottom: 8rpx; }
+.oi-price { font-size: 34rpx; color: #f60; font-weight: 700; }
+
+/* 信息行 */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.info-row:last-child { border: none; }
+
+.info-label { font-size: 28rpx; color: #888; }
+.info-value { font-size: 28rpx; color: #333; font-weight: 500; }
+
+.total-row {
+  border-top: 2rpx solid #f0f0f0;
+  margin-top: 8rpx;
+  padding-top: 22rpx;
+}
+
+.total-label { font-size: 28rpx; color: #333; font-weight: 600; }
+.total-price { font-size: 38rpx; color: #f60; font-weight: 800; }
+
+/* 操作按钮 */
+.actions {
+  padding: 20rpx 24rpx 40rpx;
+}
+
+.action-btn {
+  width: 100%;
+  margin-bottom: 16rpx;
+  border-radius: 50rpx;
+  padding: 24rpx 0;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #07c160, #05a34e);
+  color: #fff;
+  box-shadow: 0 4rpx 20rpx rgba(7, 193, 96, 0.3);
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #ff4d4f;
+  border: 2rpx solid #ff4d4f;
+}

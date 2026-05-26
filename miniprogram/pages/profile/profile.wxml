@@ -1,0 +1,147 @@
+<!-- 个人中心 -->
+<view class="page">
+  <!-- 未登录 -->
+  <view class="login-section" wx:if="{{!isLoggedIn}}">
+    <view class="login-card">
+      <view class="login-logo">
+        <text class="login-emoji">🏫</text>
+      </view>
+      <text class="login-title">校内二手集市</text>
+      <text class="login-desc">登录后发布闲置、淘好物<br/>仅限本校学生使用</text>
+      <button class="login-btn" bindtap="onLogin">
+        <text class="btn-icon">💬</text>
+        <text>微信一键登录</text>
+      </button>
+      <view class="mock-section" wx:if="{{!showMockLogin}}">
+        <text class="mock-toggle" bindtap="toggleMock">使用学号登录（开发模式）›</text>
+      </view>
+      <view class="mock-login" wx:if="{{showMockLogin}}">
+        <input class="mock-input" placeholder="输入学号" bindinput="onMockIdInput" value="{{mockId}}" />
+        <button class="mock-btn" bindtap="onMockLogin">模拟登录</button>
+        <text class="mock-toggle" bindtap="toggleMock">‹ 返回</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已登录 -->
+  <view class="profile" wx:else>
+    <view class="profile-header">
+      <view class="profile-bg"></view>
+      <view class="profile-avatar">
+        <text class="avatar-text">{{avatarChar}}</text>
+      </view>
+      <view class="profile-info">
+        <text class="profile-name">{{userInfo.nickname || '用户'}}</text>
+        <text class="profile-campus" wx:if="{{userInfo.campus}}">📍 {{userInfo.campus}}</text>
+        <text class="profile-campus" wx:else>📍 未设置常去地点</text>
+      </view>
+    </view>
+
+    <view class="menu-card">
+      <view class="menu-item" bindtap="goToMyItems">
+        <view class="menu-icon-box green">
+          <text class="menu-icon">📦</text>
+        </view>
+        <view class="menu-texts">
+          <text class="menu-text">我的发布</text>
+          <text class="menu-desc">查看和管理你发布的商品</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="goToMyOrders">
+        <view class="menu-icon-box orange">
+          <text class="menu-icon">📋</text>
+        </view>
+        <view class="menu-texts">
+          <text class="menu-text">我的订单</text>
+          <text class="menu-desc">查看买到的和卖出的订单</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="goToEditProfile">
+        <view class="menu-icon-box blue">
+          <text class="menu-icon">✏️</text>
+        </view>
+        <view class="menu-texts">
+          <text class="menu-text">编辑资料</text>
+          <text class="menu-desc">设置校区和联系方式</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-card">
+      <view class="menu-item" bindtap="goToFavorites">
+        <view class="menu-icon-box purple">
+          <text class="menu-icon">❤️</text>
+        </view>
+        <view class="menu-texts">
+          <text class="menu-text">我的收藏</text>
+          <text class="menu-desc">查看收藏的商品</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-card">
+      <view class="menu-item" bindtap="onShowFeedback">
+        <view class="menu-icon-box purple">
+          <text class="menu-icon">💬</text>
+        </view>
+        <view class="menu-texts">
+          <text class="menu-text">功能反馈群</text>
+          <text class="menu-desc">扫码进群，提建议或反馈问题</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 反馈二维码弹窗 -->
+  <view wx:if="{{showFeedback}}" bindtap="onCloseFeedback" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <view catchtap style="background:#fff;border-radius:28rpx;padding:40rpx;width:540rpx;text-align:center;">
+      <text style="font-size:32rpx;font-weight:700;color:#333;display:block;margin-bottom:20rpx;">💬 功能反馈群</text>
+      <image src="/assets/qr-feedback.png" mode="widthFix" style="width:400rpx;height:400rpx;border-radius:16rpx;" />
+      <text style="font-size:26rpx;color:#999;display:block;margin-top:20rpx;">过期后联系开发者更新</text>
+      <view bindtap="onCloseFeedback" style="margin-top:28rpx;background:#f5f5f5;color:#666;border-radius:50rpx;padding:20rpx 0;font-size:28rpx;text-align:center;">关闭</view>
+    </view>
+  </view>
+
+  <!-- 编辑资料弹窗 -->
+  <view wx:if="{{showEditModal}}" bindtap="onCancelEdit" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;z-index:999;">
+    <view catchtap style="background:#fff;border-radius:28rpx 28rpx 0 0;width:100%;padding:40rpx 32rpx;padding-bottom:calc(40rpx + env(safe-area-inset-bottom));">
+      <text style="font-size:34rpx;font-weight:700;color:#333;display:block;text-align:center;margin-bottom:32rpx;">编辑资料</text>
+
+      <!-- 头像 -->
+      <view bindtap="onEditAvatar" style="display:flex;flex-direction:column;align-items:center;margin-bottom:32rpx;">
+        <view style="width:120rpx;height:120rpx;border-radius:50%;background:linear-gradient(135deg,#07c160,#05a34e);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+          <image wx:if="{{editAvatar}}" src="{{serverURL + editAvatar}}" mode="aspectFill" style="width:100%;height:100%;" />
+          <text wx:else style="color:#fff;font-size:48rpx;font-weight:600;">{{avatarChar}}</text>
+        </view>
+        <text style="font-size:24rpx;color:#07c160;margin-top:8rpx;">点我更换头像</text>
+      </view>
+
+      <!-- 昵称 -->
+      <view style="margin-bottom:24rpx;">
+        <text style="font-size:26rpx;color:#666;display:block;margin-bottom:8rpx;">昵称</text>
+        <input placeholder="输入昵称" bindinput="onEditNicknameInput" value="{{editNickname}}" style="width:100%;background:#f8f8f8;border-radius:16rpx;padding:24rpx 28rpx;font-size:28rpx;color:#333;border:2rpx solid transparent;box-sizing:border-box;" />
+      </view>
+
+      <!-- 校区 -->
+      <view style="margin-bottom:32rpx;">
+        <text style="font-size:26rpx;color:#666;display:block;margin-bottom:8rpx;">校区</text>
+        <input placeholder="如图书馆、北区食堂等" bindinput="onEditCampusInput" value="{{editCampus}}" style="width:100%;background:#f8f8f8;border-radius:16rpx;padding:24rpx 28rpx;font-size:28rpx;color:#333;border:2rpx solid transparent;box-sizing:border-box;" />
+      </view>
+
+      <!-- 按钮 -->
+      <view style="display:flex;gap:20rpx;">
+        <view bindtap="onCancelEdit" style="flex:1;background:#f5f5f5;color:#666;border-radius:50rpx;padding:24rpx 0;text-align:center;font-size:28rpx;font-weight:500;">取消</view>
+        <view bindtap="onSaveProfile" style="flex:2;background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:50rpx;padding:24rpx 0;text-align:center;font-size:30rpx;font-weight:600;box-shadow:0 4rpx 16rpx rgba(7,193,96,0.25);">保存</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="logout-card" bindtap="onLogout">
+      <text class="logout-text">退出登录</text>
+    </view>
+  </view>
+</view>

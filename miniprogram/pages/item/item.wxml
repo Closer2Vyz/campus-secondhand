@@ -1,0 +1,146 @@
+<view class="page {{darkMode ? 'dark-mode' : ''}}">
+  <!-- 加载中 -->
+  <view wx:if="{{!pageLoaded && !loadFailed}}" style="padding:40rpx;text-align:center;color:#999;">加载中...</view>
+
+  <!-- 加载失败 -->
+  <view wx:if="{{loadFailed}}" style="padding:40rpx;text-align:center;color:#999;" bindtap="loadItem">⚠️ 加载失败，点击重试</view>
+
+  <!-- 内容 -->
+  <view wx:if="{{pageLoaded && !loadFailed}}">
+    <!-- 图片轮播 -->
+    <view wx:if="{{hasImages}}">
+      <swiper indicator-dots circular indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff" style="height:750rpx;">
+        <swiper-item wx:for="{{localImages}}" wx:key="index" data-index="{{index}}" bindtap="onPreviewImage">
+          <image src="{{item}}" mode="aspectFill" style="width:100%;height:100%;" />
+        </swiper-item>
+      </swiper>
+    </view>
+    <view wx:else style="height:400rpx;display:flex;align-items:center;justify-content:center;background:#f5f5f5;color:#ccc;font-size:28rpx;">暂无图片</view>
+
+    <!-- 信息卡片 -->
+    <view style="background:#fff;border-radius:20rpx;margin:20rpx 24rpx;padding:30rpx;box-shadow:0 2rpx 16rpx rgba(0,0,0,0.04);">
+      <text style="font-size:36rpx;font-weight:700;display:block;">{{item.title}}</text>
+      <view style="margin:16rpx 0;">
+        <text style="font-size:48rpx;color:#f60;font-weight:800;">{{priceText}}</text>
+      </view>
+      <view style="display:flex;align-items:center;gap:16rpx;margin-bottom:20rpx;">
+        <text style="font-size:24rpx;color:#07c160;background:#e8f5e9;padding:6rpx 20rpx;border-radius:20rpx;">{{item.category}}</text>
+        <text style="font-size:24rpx;color:#bbb;">{{timeText}}</text>
+        <text wx:if="{{stockText}}" style="font-size:24rpx;color:#999;">{{stockText}}</text>
+      </view>
+      <view style="border-top:2rpx solid #f5f5f5;padding-top:20rpx;">
+        <text style="font-size:26rpx;font-weight:600;display:block;margin-bottom:8rpx;">📝 商品描述</text>
+        <text wx:if="{{descText}}" style="font-size:28rpx;color:#666;line-height:1.7;">{{descText}}</text>
+        <text wx:else style="font-size:28rpx;color:#bbb;">暂无描述</text>
+      </view>
+    </view>
+
+    <!-- 卖家 -->
+    <view bindtap="onGoToSeller" style="background:#fff;border-radius:20rpx;margin:0 24rpx 20rpx;padding:24rpx;display:flex;align-items:center;gap:16rpx;box-shadow:0 2rpx 16rpx rgba(0,0,0,0.04);">
+      <view style="width:88rpx;height:88rpx;border-radius:50%;background:linear-gradient(135deg,#07c160,#05a34e);display:flex;align-items:center;justify-content:center;">
+        <text style="color:#fff;font-size:36rpx;font-weight:600;">{{sellerChar}}</text>
+      </view>
+      <view style="flex:1;">
+        <text style="font-size:30rpx;font-weight:600;display:block;">{{item.sellerName || '匿名卖家'}}</text>
+        <text style="font-size:24rpx;color:#999;display:block;margin-top:4rpx;">下单后可见联系方式</text>
+      </view>
+    </view>
+
+    <!-- 评论区 -->
+    <view wx:if="{{pageLoaded && !loadFailed}}" style="background:#fff;border-radius:20rpx;margin:0 24rpx 20rpx;padding:28rpx;box-shadow:0 2rpx 16rpx rgba(0,0,0,0.04);">
+      <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20rpx;">
+        <text style="font-size:28rpx;font-weight:600;color:#333;">💬 评论 ({{comments.length}})</text>
+      </view>
+
+      <!-- 评论列表 -->
+      <view wx:if="{{comments.length > 0}}">
+        <view wx:for="{{comments}}" wx:key="id" style="padding:16rpx 0;border-bottom:2rpx solid #f5f5f5;">
+          <view style="display:flex;align-items:center;gap:12rpx;margin-bottom:8rpx;">
+            <view style="width:48rpx;height:48rpx;border-radius:50%;background:linear-gradient(135deg,#07c160,#05a34e);display:flex;align-items:center;justify-content:center;">
+              <text style="color:#fff;font-size:28rpx;">💬</text>
+            </view>
+            <text style="font-size:24rpx;font-weight:500;color:#333;flex:1;">{{item.userName}}</text>
+            <text style="font-size:20rpx;color:#bbb;">{{item.createdAt}}</text>
+          </view>
+          <text style="font-size:28rpx;color:#555;line-height:1.6;display:block;padding-left:60rpx;">{{item.content}}</text>
+        </view>
+      </view>
+      <view wx:else style="padding:20rpx 0;text-align:center;">
+        <text style="font-size:26rpx;color:#bbb;">暂无评论，来说两句吧</text>
+      </view>
+
+      <!-- 发表评论 -->
+      <view style="display:flex;gap:16rpx;margin-top:16rpx;padding-top:16rpx;border-top:2rpx solid #f0f0f0;">
+        <input placeholder="输入评论..." bindinput="onCommentInput" value="{{commentText}}" style="flex:1;background:#f8f8f8;border-radius:40rpx;padding:16rpx 24rpx;font-size:26rpx;color:#333;border:none;" />
+        <view bindtap="onPostComment" style="background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:40rpx;padding:16rpx 32rpx;font-size:26rpx;font-weight:500;text-align:center;white-space:nowrap;">发送</view>
+      </view>
+    </view>
+
+    <!-- 底部下单栏 -->
+    <view wx:if="{{item.status === 'active'}}" style="position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:space-between;padding:20rpx 30rpx;padding-bottom:calc(20rpx + env(safe-area-inset-bottom));border-top:2rpx solid rgba(0,0,0,0.05);backdrop-filter:blur(12rpx);">
+      <view style="display:flex;align-items:center;gap:16rpx;">
+        <text style="font-size:44rpx;color:#f60;font-weight:800;">{{priceText}}</text>
+        <text bindtap="onToggleFavorite" style="font-size:40rpx;">{{isFavorited ? '❤️' : '🤍'}}</text>
+      </view>
+      <view bindtap="onBuy" style="background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:50rpx;padding:22rpx 70rpx;font-size:32rpx;font-weight:600;text-align:center;box-shadow:0 4rpx 20rpx rgba(7,193,96,0.3);">联系卖家</view>
+    </view>
+  </view>
+
+  <!-- 下单弹窗 -->
+  <view wx:if="{{showOrderModal}}" bindtap="onCancelOrder" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;z-index:100;">
+    <view catchtap style="background:#fff;border-radius:32rpx 32rpx 0 0;width:100%;padding:36rpx 32rpx;padding-bottom:calc(36rpx + env(safe-area-inset-bottom));">
+      <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24rpx;">
+        <text style="font-size:34rpx;font-weight:700;">📦 选择自提信息</text>
+        <text bindtap="onCancelOrder" style="font-size:40rpx;color:#ccc;">✕</text>
+      </view>
+
+      <view style="display:flex;align-items:center;justify-content:space-between;padding:28rpx 0;border-bottom:2rpx solid #f5f5f5;">
+        <text style="font-size:28rpx;font-weight:500;">📅 日期</text>
+        <picker mode="date" bindchange="onDateChange">
+          <text style="font-size:28rpx;color:{{pickupDate ? '#07c160' : '#bbb'}};background:#e8f5e9;padding:8rpx 20rpx;border-radius:30rpx;">{{pickupDate || '请选择日期'}}</text>
+        </picker>
+      </view>
+
+      <view style="display:flex;align-items:center;justify-content:space-between;padding:28rpx 0;border-bottom:2rpx solid #f5f5f5;">
+        <text style="font-size:28rpx;font-weight:500;">⏰ 时间</text>
+        <picker mode="time" bindchange="onTimeChange">
+          <text style="font-size:28rpx;color:{{pickupTime ? '#07c160' : '#bbb'}};background:#e8f5e9;padding:8rpx 20rpx;border-radius:30rpx;">{{pickupTime || '请选择时段'}}</text>
+        </picker>
+      </view>
+
+      <view style="display:flex;align-items:center;justify-content:space-between;padding:28rpx 0;border-bottom:2rpx solid #f5f5f5;">
+        <text style="font-size:28rpx;font-weight:500;">📍 地点</text>
+        <input style="font-size:28rpx;color:#333;text-align:right;flex:1;padding:8rpx 0;" placeholder="如图书馆、食堂等" bindinput="onLocationInput" />
+      </view>
+
+      <view style="display:flex;align-items:center;justify-content:space-between;padding:28rpx 0;border-bottom:2rpx solid #f5f5f5;">
+        <text style="font-size:28rpx;font-weight:500;">📞 手机号</text>
+        <input style="font-size:28rpx;color:#333;text-align:right;flex:1;padding:8rpx 0;" placeholder="方便卖家联系" type="number" maxlength="11" bindinput="onPhoneInput" />
+      </view>
+
+      <view style="background:#f8f8f8;border-radius:16rpx;padding:24rpx;margin:24rpx 0;">
+        <view style="display:flex;justify-content:space-between;font-size:28rpx;color:#333;">
+          <text>商品价格</text>
+          <text style="font-weight:700;">{{priceText}}</text>
+        </view>
+      </view>
+
+      <view style="display:flex;gap:20rpx;margin-top:24rpx;">
+        <view bindtap="onCancelOrder" style="flex:1;background:#f5f5f5;color:#666;border-radius:50rpx;padding:24rpx 0;text-align:center;font-size:28rpx;font-weight:500;">取消</view>
+        <view bindtap="onSubmitOrder" style="flex:2;background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:50rpx;padding:24rpx 0;text-align:center;font-size:30rpx;font-weight:600;box-shadow:0 4rpx 16rpx rgba(7,193,96,0.25);">去联系卖家</view>
+      </view>
+    </view>
+  </view>
+  <!-- 联系方式弹窗 -->
+  <view wx:if="{{showContactModal}}" bindtap="onCloseContact" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <view catchtap style="background:#fff;border-radius:28rpx;padding:40rpx;width:600rpx;text-align:center;">
+      <text style="font-size:34rpx;font-weight:700;color:#333;display:block;margin-bottom:12rpx;">✅ 已通知卖家</text>
+      <text style="font-size:26rpx;color:#666;display:block;line-height:1.8;margin-bottom:24rpx;">卖家联系方式如下，快去联系吧</text>
+      <view bindtap="onCopyContact" style="background:#e8f5e9;border-radius:16rpx;padding:28rpx;margin-bottom:24rpx;">
+        <text style="font-size:32rpx;color:#07c160;font-weight:600;">📞 {{sellerContact}}</text>
+      </view>
+      <text style="font-size:24rpx;color:#bbb;display:block;margin-bottom:24rpx;">点上方复制联系方式</text>
+      <view bindtap="onCloseContact" style="background:#f5f5f5;color:#666;border-radius:50rpx;padding:22rpx 0;font-size:28rpx;text-align:center;">关闭</view>
+    </view>
+  </view>
+</view>

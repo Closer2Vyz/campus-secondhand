@@ -1,0 +1,26 @@
+<!-- 我的发布 -->
+<view class="page {{darkMode ? 'dark-mode' : ''}}">
+  <view class="tabs">
+    <view class="tab {{activeTab === 'active' ? 'active' : ''}}" bindtap="switchTab" data-tab="active">在售</view>
+    <view class="tab {{activeTab === 'sold' ? 'active' : ''}}" bindtap="switchTab" data-tab="sold">已售</view>
+    <view class="tab {{activeTab === 'inactive' ? 'active' : ''}}" bindtap="switchTab" data-tab="inactive">已下架</view>
+  </view>
+
+  <view class="list">
+    <view class="list-item" wx:for="{{items}}" wx:key="id">
+      <image class="list-img" src="{{item.images && item.images.length > 0 ? serverURL + item.images[0] : '/assets/placeholder.png'}}" mode="aspectFill" />
+      <view class="list-info">
+        <text class="list-title">{{item.title}}</text>
+        <text class="list-price">{{formatPrice(item.price)}}</text>
+        <text class="list-status tag-{{item.status}}">{{itemStatusText(item.status)}}</text>
+      </view>
+      <view class="list-actions" wx:if="{{activeTab === 'active'}}">
+        <button class="action-btn" bindtap="onSoldIt" data-id="{{item.id}}">标记已售</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{items.length === 0}}">
+    <text>暂无商品</text>
+  </view>
+</view>

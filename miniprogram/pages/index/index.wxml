@@ -1,0 +1,95 @@
+<!-- 首页 -->
+<view class="page {{darkMode ? 'dark-mode' : ''}}">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索商品名称" bindinput="onSearchInput" value="{{keyword}}" confirm-type="search" bindconfirm="onSearch" />
+      <text wx:if="{{keyword}}" class="search-clear" bindtap="onClearSearch">✕</text>
+    </view>
+    <text class="search-btn" bindtap="onSearch">搜索</text>
+  </view>
+
+  <!-- Banner 广告轮播（招租中） -->
+  <swiper class="banner-swiper" indicator-dots autoplay circular interval="4000" indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
+    <swiper-item wx:for="{{banners}}" wx:key="index">
+      <view class="banner-ad-placeholder">
+        <text class="banner-ad-text">广告位</text>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 快捷入口 -->
+  <view class="quick-actions">
+    <view class="quick-item" wx:for="{{categories}}" wx:key="index" bindtap="onCategoryTap" data-category="{{item}}">
+      <view class="quick-icon" style="background: {{catColors[index]}}">
+        <text>{{catIcons[index]}}</text>
+      </view>
+      <text class="quick-label">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 推荐标题 -->
+  <view class="section-header">
+    <text class="section-title">推荐好物</text>
+    <view class="section-actions">
+      <view class="sort-options">
+        <text class="sort-option {{sortBy === 'time_desc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="time_desc">最新</text>
+        <text class="sort-option {{sortBy === 'price_asc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price_asc">价格↑</text>
+        <text class="sort-option {{sortBy === 'price_desc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price_desc">价格↓</text>
+      </view>
+      <text class="section-more" bindtap="onShowAnnouncement">📢 公告</text>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="item-list">
+    <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
+      <view class="item-card-inner">
+        <image class="item-image" src="{{itemThumbs[index] || serverURL + item.images[0]}}" mode="aspectFill" wx:if="{{item.images.length > 0}}" />
+        <image class="item-image" src="/assets/placeholder.png" mode="aspectFill" wx:else />
+        <view class="item-tag">{{item.category}}</view>
+        <view class="item-info">
+          <text class="item-title">{{item.title}}</text>
+          <view class="item-meta">
+            <text class="item-price">{{item.priceText}}</text>
+            <text class="item-time">{{item.timeText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公告弹窗 -->
+  <view wx:if="{{showAnnouncement && announcement}}" class="announcement-mask" bindtap="onCloseAnnouncement">
+    <view class="announcement-modal" catchtap>
+      <view class="announcement-header">
+        <text class="announcement-title">{{announcement.title}}</text>
+        <text class="announcement-time">{{announcement.createdAt}}</text>
+      </view>
+      <view class="announcement-body">
+        <text class="announcement-content">{{announcement.content}}</text>
+      </view>
+      <view class="announcement-footer">
+        <view class="announcement-btn" bindtap="onCloseAnnouncement">我知道了</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="load-more" wx:if="{{loading && items.length === 0}}">加载中...</view>
+  <view class="load-more" wx:elif="{{loading && items.length > 0}}">加载更多...</view>
+  <view class="load-more" wx:elif="{{hasMore}}">上拉加载更多</view>
+
+  <!-- 加载失败 -->
+  <view class="error-state" wx:if="{{loadError && items.length === 0}}" bindtap="loadItems">
+    <text class="error-icon">⚠️</text>
+    <text>加载失败，点击重试</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{items.length === 0 && !loading && !loadError}}">
+    <text class="empty-icon">📭</text>
+    <text>还没有商品，快来发布吧</text>
+  </view>
+</view>

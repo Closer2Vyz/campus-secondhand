@@ -1,0 +1,21 @@
+{
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": false,
+    "enhance": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "minifyWXSS": true
+  },
+  "compileType": "miniprogram",
+  "appid": "wxd0d9102504a858c0",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
+}

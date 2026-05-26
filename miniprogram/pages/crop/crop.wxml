@@ -1,0 +1,10 @@
+<view class="crop-page">
+  <canvas class="crop-canvas" type="2d" id="cropCanvas"
+    bindtouchstart="onTouchStart"
+    bindtouchmove="onTouchMove">
+  </canvas>
+  <view class="crop-actions">
+    <view class="crop-btn cancel" bindtap="onCancel">取消</view>
+    <view class="crop-btn confirm" bindtap="onConfirm">✅ 完成裁剪</view>
+  </view>
+</view>

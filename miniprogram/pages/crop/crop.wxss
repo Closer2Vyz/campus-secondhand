@@ -1,0 +1,43 @@
+.crop-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.crop-canvas {
+  flex: 1;
+  width: 100%;
+}
+
+.crop-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 30rpx 40rpx;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+  background: #111;
+}
+
+.crop-btn {
+  border-radius: 50rpx;
+  padding: 22rpx 0;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.crop-btn.cancel {
+  width: 30%;
+  color: #999;
+  background: #2a2a2a;
+}
+
+.crop-btn.confirm {
+  width: 60%;
+  color: #fff;
+  background: linear-gradient(135deg, #07c160, #05a34e);
+}

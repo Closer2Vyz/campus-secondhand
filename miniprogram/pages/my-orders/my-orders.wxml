@@ -1,0 +1,27 @@
+<!-- 我的订单 -->
+<view class="page {{darkMode ? 'dark-mode' : ''}}">
+  <view class="tabs">
+    <view class="tab {{activeTab === 'buy' ? 'active' : ''}}" bindtap="switchTab" data-tab="buy">我买到的</view>
+    <view class="tab {{activeTab === 'sell' ? 'active' : ''}}" bindtap="switchTab" data-tab="sell">我卖出的</view>
+  </view>
+
+  <view class="list">
+    <view class="order-card" wx:for="{{orders}}" wx:key="id" bindtap="onOrderTap" data-id="{{item.id}}">
+      <view class="order-header">
+        <text class="order-status tag-{{item.status}}">{{orderStatusText(item.status)}}</text>
+      </view>
+      <view class="order-body">
+        <image class="order-img" src="{{item.itemImages && item.itemImages.length > 0 ? serverURL + item.itemImages[0] : '/assets/placeholder.png'}}" mode="aspectFill" />
+        <view class="order-info">
+          <text class="order-title">{{item.itemTitle}}</text>
+          <text class="order-time">{{formatTime(item.pickupTime)}} 自提</text>
+          <text class="order-total">实付 {{formatPrice(item.totalPrice)}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{orders.length === 0}}">
+    <text>暂无订单</text>
+  </view>
+</view>

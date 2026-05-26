@@ -1,0 +1,91 @@
+<!-- 订单详情 -->
+<view class="page {{darkMode ? 'dark-mode' : ''}}">
+  <!-- 订单状态 -->
+  <view class="status-bar bg-{{order.status}}">
+    <text class="status-icon">{{statusIcon}}</text>
+    <view class="status-texts">
+      <text class="status-title">{{statusTitle}}</text>
+      <text class="status-desc">{{statusDesc}}</text>
+    </view>
+  </view>
+
+  <!-- 商品信息 -->
+  <view class="card">
+    <view class="order-item">
+      <image class="oi-img" src="{{order.itemImages && order.itemImages.length > 0 ? serverURL + order.itemImages[0] : '/assets/placeholder.png'}}" mode="aspectFill" />
+      <view class="oi-info">
+        <text class="oi-title">{{order.itemTitle}}</text>
+        <text class="oi-price">{{formatPrice(order.itemPrice)}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自提信息 -->
+  <view class="card">
+    <view class="info-row">
+      <text class="info-label">📅 自提时间</text>
+      <text class="info-value">{{formatTime(order.pickupTime)}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">📍 自提地点</text>
+      <text class="info-value">{{order.pickupLocation || '待约定'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">📞 联系电话</text>
+      <text class="info-value">{{order.contactPhone || '未填写'}}</text>
+    </view>
+  </view>
+
+  <!-- 卖家联系方式（仅买家可见） -->
+  <view class="card" wx:if="{{isBuyer && order.itemContact}}">
+    <view class="info-row">
+      <text class="info-label">📞 卖家联系方式</text>
+      <text class="info-value" style="color:#07c160;font-weight:600;">{{order.itemContact}}</text>
+    </view>
+  </view>
+
+  <!-- 费用明细 -->
+  <view class="card">
+    <view class="info-row">
+      <text class="info-label">商品价格</text>
+      <text class="info-value">{{formatPrice(order.itemPrice)}}</text>
+    </view>
+    <view class="info-row total-row">
+      <text class="total-label">合计实付</text>
+      <text class="total-price">{{formatPrice(order.totalPrice)}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="actions">
+    <button class="action-btn btn-primary" wx:if="{{isSeller && order.status === 'pending'}}" bindtap="onConfirmPickup">
+      ✅ 确认已自提
+    </button>
+    <button class="action-btn btn-secondary" wx:if="{{isBuyer && order.status === 'pending'}}" bindtap="onCancelOrder">
+      ❌ 取消订单
+    </button>
+    <button class="action-btn btn-primary" wx:if="{{isBuyer && order.status === 'completed'}}" bindtap="onRate">
+      ⭐ 评价卖家
+    </button>
+  </view>
+
+  <!-- 评价弹窗 -->
+  <view wx:if="{{showRating}}" bindtap="onCancelRating" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;z-index:999;">
+    <view catchtap style="background:#fff;border-radius:28rpx 28rpx 0 0;width:100%;padding:40rpx 32rpx;padding-bottom:calc(40rpx + env(safe-area-inset-bottom));">
+      <text style="font-size:34rpx;font-weight:700;color:#333;display:block;text-align:center;margin-bottom:28rpx;">⭐ 评价卖家</text>
+
+      <!-- 星星 -->
+      <view style="display:flex;justify-content:center;gap:16rpx;margin-bottom:28rpx;">
+        <text wx:for="{{[1,2,3,4,5]}}" wx:key="*this" bindtap="onRatingScore" data-score="{{item}}" style="font-size:60rpx;{{item <= ratingScore ? 'color:#ffc107;' : 'color:#ddd;'}}">{{item <= ratingScore ? '★' : '☆'}}</text>
+      </view>
+
+      <!-- 评价内容 -->
+      <input placeholder="写点评价（可选）" bindinput="onRatingInput" value="{{ratingContent}}" style="width:100%;background:#f8f8f8;border-radius:16rpx;padding:24rpx 28rpx;font-size:28rpx;color:#333;border:2rpx solid transparent;box-sizing:border-box;margin-bottom:28rpx;" />
+
+      <view style="display:flex;gap:20rpx;">
+        <view bindtap="onCancelRating" style="flex:1;background:#f5f5f5;color:#666;border-radius:50rpx;padding:24rpx 0;text-align:center;font-size:28rpx;font-weight:500;">取消</view>
+        <view bindtap="onSubmitRating" style="flex:2;background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:50rpx;padding:24rpx 0;text-align:center;font-size:30rpx;font-weight:600;">提交评价</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,39 @@
+<view class="page">
+  <view wx:if="{{!pageLoaded}}" style="padding:80rpx 0;text-align:center;color:#999;">加载中...</view>
+
+  <view wx:if="{{pageLoaded}}">
+    <view class="seller-header">
+      <view class="seller-avatar">
+        <image wx:if="{{hasAvatar}}" src="{{avatarUrl}}" mode="aspectFill" />
+        <text wx:else style="color:#fff;font-size:52rpx;font-weight:600;">{{avatarChar}}</text>
+      </view>
+      <text class="seller-name">{{seller.nickname}}</text>
+      <text wx:if="{{seller.campus}}" class="seller-campus">{{seller.campus}}</text>
+      <view class="seller-rating">
+        <text class="rating-stars">{{starsText}}</text>
+        <text class="rating-count">{{ratingText}}</text>
+      </view>
+      <text class="seller-since">{{joinedText}}</text>
+    </view>
+
+    <view class="section-header">
+      <text class="section-title">在售商品</text>
+    </view>
+
+    <view class="item-list">
+      <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
+        <view class="item-card-inner">
+          <image class="item-image" src="{{item.firstImage}}" mode="aspectFill" />
+          <view class="item-info">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-price">{{item.priceText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{items.length === 0}}" class="empty-state">
+      <text>暂无在售商品</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,88 @@
+/* ===== 我的发布 ===== */
+page { background: #f8f8f8; }
+
+.tabs {
+  display: flex;
+  background: #fff;
+  padding: 0 24rpx;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  font-weight: 500;
+}
+
+.tab.active {
+  color: #07c160;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: #07c160;
+  border-radius: 3rpx;
+}
+
+.list { padding: 20rpx 24rpx; }
+
+.list-item {
+  display: flex;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+
+.list-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  background: #f0f0f0;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.list-info { flex: 1; min-width: 0; }
+.list-title { 
+  font-size: 28rpx; color: #333; font-weight: 500; display: block; margin-bottom: 6rpx;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.list-price { font-size: 34rpx; color: #f60; font-weight: 700; display: block; margin-bottom: 8rpx; }
+
+.list-status {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.tag-active { background: #e8f5e9; color: #07c160; }
+.tag-sold { background: #fff7e6; color: #fa8c16; }
+.tag-inactive { background: #f5f5f5; color: #999; }
+
+.list-actions { margin-left: 12rpx; }
+.action-btn {
+  background: #07c160;
+  color: #fff;
+  font-size: 24rpx;
+  padding: 14rpx 28rpx;
+  border-radius: 30rpx;
+  border: none;
+  font-weight: 500;
+}
