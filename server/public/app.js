@@ -182,8 +182,20 @@ function loadNotice() {
 }
 
 // ===== 初始化 =====
+function loadBanners() {
+  api('GET','/api/items',{page:1,category:''}).then(function(){});
+  var banners = ['📢 广告位招租','📢 广告位招租','📢 广告位招租'];
+  var html = '<div style="display:flex;gap:8px;padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px">';
+  banners.forEach(function(b){
+    html += '<div style="min-width:100%;height:120px;background:linear-gradient(135deg,#07c160,#05a34e);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600;letter-spacing:2px">'+b+'</div>';
+  });
+  html += '</div>';
+  $('bannerArea').innerHTML = html;
+}
+
 window.onload = function() {
   initHome();
+  loadBanners();
   loadItems();
   loadProfile();
   
