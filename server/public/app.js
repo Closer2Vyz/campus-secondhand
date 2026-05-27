@@ -37,11 +37,12 @@ function doLogin() {
 // ===== 首页 =====
 function initHome() {
   var cats = ['全部','教材','数码','生活','体育','其他','虚拟物品'];
+  var catIcons = ['🛍️','📚','📱','🧥','⚽','🎲','💻'];
   var elCats = $('cats');
   cats.forEach((c,i)=>{
     var sp = document.createElement('span');
     sp.className = 'cat' + (i===0?' active':'');
-    sp.textContent = c;
+    sp.textContent = catIcons[i] + ' ' + c;
     sp.onclick = function(){
       elCats.querySelectorAll('.cat').forEach(e=>e.classList.remove('active'));
       this.classList.add('active');
