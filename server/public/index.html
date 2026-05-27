@@ -4,346 +4,122 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>校内好物圈</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, 'PingFang SC', sans-serif; background: #f8f8f8; color: #333; }
-    .page { display: none; padding: 0 0 120rpx; min-height: 100vh; }
-    .page.active { display: block; }
-    
-    /* 顶部栏 */
-    .header { background: #07c160; padding: 44rpx 16rpx 12rpx; color: #fff; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .header h1 { font-size: 18px; font-weight: 600; }
-    .header-btn { color: #fff; font-size: 14px; cursor: pointer; }
-    
-    /* 底部导航 */
-    .tabbar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-    .tab-item { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; color: #999; cursor: pointer; }
-    .tab-item.active { color: #07c160; }
-    .tab-icon { font-size: 22px; display: block; margin-bottom: 2px; }
-    
-    /* 搜索 */
-    .search-bar { display: flex; padding: 12px 16px; gap: 8px; }
-    .search-wrap { flex: 1; display: flex; background: #fff; border-radius: 20px; border: 1px solid #eee; padding: 0 12px; }
-    .search-wrap input { flex: 1; height: 36px; border: none; outline: none; font-size: 14px; background: transparent; }
-    .search-btn { background: #07c160; color: #fff; border: none; border-radius: 20px; padding: 0 16px; font-size: 14px; cursor: pointer; }
-    
-    /* 分类 */
-    .categories { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; }
-    .cat-item { padding: 6px 16px; border-radius: 20px; font-size: 13px; background: #fff; border: 1px solid #eee; white-space: nowrap; cursor: pointer; }
-    .cat-item.active { background: #e8f5e9; color: #07c160; border-color: #07c160; }
-    
-    /* 排序 */
-    .sort-bar { display: flex; gap: 8px; padding: 0 16px 12px; }
-    .sort-btn { font-size: 12px; padding: 4px 12px; border-radius: 12px; border: 1px solid #eee; background: #fff; cursor: pointer; }
-    .sort-btn.active { color: #07c160; border-color: #07c160; }
-    
-    /* 商品列表 */
-    .item-grid { display: flex; flex-wrap: wrap; padding: 0 8px; gap: 8px; }
-    .item-card { width: calc(50% - 4px); background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; }
-    .item-img { width: 100%; height: 160px; background: #f0f0f0; object-fit: cover; }
-    .item-info { padding: 10px 12px 12px; }
-    .item-title { font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
-    .item-price { font-size: 16px; color: #f60; font-weight: 700; margin-top: 6px; display: block; }
-    .item-meta { font-size: 11px; color: #bbb; margin-top: 4px; }
-    
-    /* 卡片 */
-    .card { background: #fff; border-radius: 12px; margin: 12px 16px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
-    
-    /* 表单 */
-    .form-group { margin-bottom: 16px; }
-    .form-label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
-    .form-input { width: 100%; background: #f8f8f8; border: 1px solid transparent; border-radius: 8px; padding: 12px; font-size: 14px; outline: none; box-sizing: border-box; }
-    .form-input:focus { border-color: #07c160; background: #fff; }
-    select.form-input { appearance: auto; }
-    
-    /* 按钮 */
-    .btn { border: none; border-radius: 25px; padding: 12px 0; font-size: 15px; font-weight: 600; text-align: center; cursor: pointer; width: 100%; }
-    .btn-primary { background: linear-gradient(135deg, #07c160, #05a34e); color: #fff; }
-    .btn-secondary { background: #f5f5f5; color: #666; }
-    .btn-danger { background: #ff4d4f; color: #fff; }
-    .btn:active { opacity: 0.9; }
-    .btn + .btn { margin-top: 8px; }
-    
-    /* 弹窗 */
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: flex-end; justify-content: center; }
-    .modal.active { display: flex; }
-    .modal-content { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 24px 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); max-height: 80vh; overflow-y: auto; }
-    .modal-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 16px; }
-    
-    /* 卖家卡片 */
-    .seller-card { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
-    .seller-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #07c160, #05a34e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 600; }
-    .seller-name { font-size: 15px; font-weight: 600; }
-    .seller-contact { font-size: 13px; color: #07c160; }
-    
-    /* 图片上传 */
-    .upload-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-    .upload-item { width: 80px; height: 80px; border-radius: 8px; overflow: hidden; position: relative; }
-    .upload-item img { width: 100%; height: 100%; object-fit: cover; }
-    .upload-item .remove { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0,0,0,0.5); color: #fff; border-radius: 50%; text-align: center; line-height: 20px; font-size: 14px; cursor: pointer; }
-    .upload-btn { width: 80px; height: 80px; border: 2px dashed #ddd; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #bbb; font-size: 12px; }
-    .upload-btn .plus { font-size: 28px; line-height: 1; }
-    
-    /* 星星评价 */
-    .stars { display: flex; gap: 8px; font-size: 32px; justify-content: center; }
-    .stars span { cursor: pointer; }
-    
-    /* 空状态 */
-    .empty { text-align: center; padding: 60px 0; color: #999; font-size: 14px; }
-    
-    .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 999; display: none; }
-    .loading { text-align: center; padding: 40px; color: #999; font-size: 14px; }
-    
-    /* 评论区 */
-    .comment-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-    .comment-user { font-size: 13px; font-weight: 500; color: #333; }
-    .comment-text { font-size: 14px; color: #555; line-height: 1.6; margin-top: 4px; }
-    .comment-time { font-size: 11px; color: #bbb; margin-top: 2px; }
-    .comment-input-wrap { display: flex; gap: 8px; margin-top: 12px; }
-    .comment-input { flex: 1; background: #f8f8f8; border: none; border-radius: 20px; padding: 8px 12px; font-size: 13px; outline: none; }
-    .comment-send { background: #07c160; color: #fff; border: none; border-radius: 20px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
-    
-    @media (min-width: 500px) { body { max-width: 500px; margin: 0 auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 100vh; } }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="toast" class="toast"></div>
-  
-  <!-- ========== 首页 ========== -->
+
+  <!-- ===== 首页 ===== -->
   <div id="page-home" class="page active">
     <div class="header">
-      <h1>校内好物圈</h1>
-      <span class="header-btn" id="homeNoticeBtn">📢</span>
+      <span class="header-title">校内好物圈</span>
+      <span class="header-btn" onclick="loadNotice()">📢</span>
     </div>
     <div class="search-bar">
-      <div class="search-wrap"><input id="searchInput" placeholder="搜索好物" onkeydown="if(event.key==='Enter') search()"/></div>
-      <button class="search-btn" onclick="search()">搜索</button>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="searchInput" placeholder="搜索好物" />
+      </div>
+      <span id="searchBtn" style="background:#07c160;color:#fff;border:none;border-radius:20px;padding:0 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;">搜索</span>
     </div>
-    <div class="categories" id="categories"></div>
-    <div class="sort-bar" id="sortBar">
+    <div id="loginNotice"></div>
+    <div class="cats" id="cats"></div>
+    <div class="sort-bar">
       <span class="sort-btn active" onclick="setSort('time_desc')">最新</span>
       <span class="sort-btn" onclick="setSort('price_asc')">心意↑</span>
       <span class="sort-btn" onclick="setSort('price_desc')">心意↓</span>
     </div>
-    <div class="item-grid" id="itemGrid"></div>
-    <div id="homeLoading" class="loading">加载中...</div>
+    <div class="grid" id="itemList"></div>
+    <div id="loadMore" style="display:none;text-align:center;padding:16px;color:#999;cursor:pointer;" onclick="loadMore()">加载更多</div>
   </div>
-  
-  <!-- ========== 详情页 ========== -->
+
+  <!-- ===== 详情 ===== -->
   <div id="page-detail" class="page">
-    <div class="header"><span class="header-btn" onclick="showPage('home')">← 返回</span><h1>详情</h1><span></span></div>
+    <div class="header">
+      <span class="header-back" onclick="showPage('home')">← 返回</span>
+      <span class="header-title">详情</span>
+      <span></span>
+    </div>
     <div id="detailContent"></div>
+    <div id="detailBottom" class="detail-bottom" style="display:none"></div>
   </div>
-  
-  <!-- ========== 发布页 ========== -->
+
+  <!-- ===== 发布 ===== -->
   <div id="page-publish" class="page">
-    <div class="header"><span class="header-btn" onclick="showPage('home')">← 返回</span><h1>添加好物</h1><span></span></div>
-    <div class="card" style="margin-top:0">
-      <div class="form-group"><label class="form-label">📷 图片</label>
-        <div class="upload-grid" id="uploadGrid"></div>
+    <div class="header">
+      <span class="header-back" onclick="showPage('home')">← 返回</span>
+      <span class="header-title">添加好物</span>
+      <span></span>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <div class="form-group">
+        <label class="form-label">📝 标题</label>
+        <input class="form-input" id="pubTitle" placeholder="输入标题" />
       </div>
-      <div class="form-group"><label class="form-label">📝 标题</label><input class="form-input" id="pubTitle" placeholder="输入标题" /></div>
-      <div class="form-group"><label class="form-label">🏷️ 分类</label>
-        <select class="form-input" id="pubCategory">
+      <div class="form-group">
+        <label class="form-label">🏷️ 分类</label>
+        <select class="form-input form-select" id="pubCat">
           <option value="">请选择</option>
           <option>教材</option><option>数码</option><option>生活</option><option>体育</option><option>其他</option><option>虚拟物品</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label">🍞 心意</label><input class="form-input" id="pubPrice" placeholder="0.00" type="number" /></div>
-      <div class="form-group"><label class="form-label">📞 联系方式</label><input class="form-input" id="pubContact" placeholder="微信号或手机号" /></div>
-      <div class="form-group"><label class="form-label">📄 描述</label><textarea class="form-input" id="pubDesc" rows="3" placeholder="描述好物情况"></textarea></div>
+      <div class="form-group">
+        <label class="form-label">🍞 心意</label>
+        <input class="form-input" id="pubPrice" placeholder="0.00" type="number" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">📞 联系方式</label>
+        <input class="form-input" id="pubContact" placeholder="微信号或手机号" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">📄 描述</label>
+        <textarea class="form-input form-textarea" id="pubDesc" placeholder="描述好物情况"></textarea>
+      </div>
       <button class="btn btn-primary" onclick="publish()">添加</button>
     </div>
   </div>
-  
-  <!-- ========== 个人中心 ========== -->
+
+  <!-- ===== 个人中心 ===== -->
   <div id="page-profile" class="page">
-    <div class="header"><h1>我的</h1><span></span></div>
+    <div class="header">
+      <span class="header-title">我的</span>
+      <span></span>
+    </div>
     <div id="profileContent"></div>
   </div>
-  
-  <!-- ========== 底部导航 ========== -->
+
+  <!-- ===== 底部导航 ===== -->
   <div class="tabbar">
     <div class="tab-item active" onclick="showPage('home')"><span class="tab-icon">🏠</span>首页</div>
     <div class="tab-item" onclick="showPage('publish')"><span class="tab-icon">➕</span>添加</div>
     <div class="tab-item" onclick="showPage('profile')"><span class="tab-icon">👤</span>我的</div>
   </div>
-  
-  <!-- ========== 公告弹窗 ========== -->
-  <div class="modal" id="noticeModal"><div class="modal-content">
-    <div class="modal-title">📢 公告</div>
-    <div id="noticeContent" style="font-size:14px;line-height:1.8;color:#555;white-space:pre-wrap;margin-bottom:16px;"></div>
-    <button class="btn btn-primary" onclick="closeModal('noticeModal')">知道了</button>
-  </div></div>
-  
-  <!-- ========== 联系弹窗 ========== -->
-  <div class="modal" id="contactModal"><div class="modal-content">
-    <div class="modal-title">📦 联系信息</div>
-    <div class="form-group"><label class="form-label">📅 日期</label><input class="form-input" id="conDate" type="date" /></div>
-    <div class="form-group"><label class="form-label">⏰ 时间</label><input class="form-input" id="conTime" type="time" /></div>
-    <div class="form-group"><label class="form-label">📍 地点</label><input class="form-input" id="conLocation" placeholder="如图书馆" /></div>
-    <div class="form-group"><label class="form-label">📞 手机</label><input class="form-input" id="conPhone" placeholder="你的手机号" type="tel" /></div>
-    <div class="form-group" style="background:#f8f8f8;border-radius:8px;padding:12px;">
-      <div style="display:flex;justify-content:space-between;font-size:14px;"><span>心意</span><span id="conPrice" style="font-weight:700;"></span></div>
+
+  <!-- ===== 联系弹窗 ===== -->
+  <div class="modal" id="contactModal">
+    <div class="modal-content">
+      <div class="modal-title">📦 联系信息</div>
+      <div class="form-group"><label class="form-label">📅 日期</label><input class="form-input" id="conDate" type="date" /></div>
+      <div class="form-group"><label class="form-label">⏰ 时间</label><input class="form-input" id="conTime" type="time" /></div>
+      <div class="form-group"><label class="form-label">📍 地点</label><input class="form-input" id="conLoc" placeholder="如图书馆、食堂" /></div>
+      <div class="form-group"><label class="form-label">📞 手机号</label><input class="form-input" id="conPhone" placeholder="方便对方联系" type="tel" /></div>
+      <div style="background:#f8f8f8;border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:14px;"><span>心意</span><span id="conPrice" style="font-weight:700;"></span></div>
+      </div>
+      <button class="btn btn-primary" onclick="submitContact()">去联系</button>
+      <button class="btn btn-secondary" onclick="modal('contactModal',0)">取消</button>
     </div>
-    <button class="btn btn-primary" onclick="submitContact()">去联系</button>
-    <button class="btn btn-secondary" onclick="closeModal('contactModal')" style="margin-top:8px">取消</button>
-  </div></div>
-  
-  <script>
-    const API = '';
-    let token = localStorage.getItem('token') || '';
-    let user = JSON.parse(localStorage.getItem('user') || '{}');
-    let currentItem = null;
-    let pubImages = [];
-    
-    function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); }
-    function showPage(name) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+name).classList.add('active'); document.querySelectorAll('.tab-item').forEach((t,i)=>{t.classList.toggle('active',(name==='home'&&i===0)||(name==='publish'&&i===1)||(name==='profile'&&i===2));}); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    
-    function api(method, path, data, withAuth) {
-      var opts = { method, headers: { 'Content-Type': 'application/json' } };
-      if (data && method !== 'GET') opts.body = JSON.stringify(data);
-      if (withAuth && token) opts.headers['Authorization'] = 'Bearer ' + token;
-      var url = API + path;
-      if (data && method === 'GET') url += '?' + new URLSearchParams(data);
-      return fetch(url, opts).then(r => r.json());
-    }
-    
-    // 登录
-    function doLogin() {
-      if (token) { showPage('profile'); loadProfile(); return; }
-      var nickname = prompt('输入昵称（或直接确定使用默认）') || '用户';
-      api('POST', '/api/auth/login', { mockOpenid: 'web_' + Date.now(), nickname }).then(res => {
-        if (res.code === 0) {
-          token = res.data.token; user = res.data.user;
-          localStorage.setItem('token', token); localStorage.setItem('user', JSON.stringify(user));
-          toast('登录成功'); showPage('home'); loadItems(); loadProfile();
-        } else toast(res.message || '登录失败');
-      });
-    }
-    if (!token) doLogin(); else { loadItems(); loadProfile(); loadNotice(); }
-    
-    // 首页
-    var page = 1, sortBy = 'time_desc', keyword = '', category = '';
-    var cats = ['全部','教材','数码','生活','体育','其他','虚拟物品'];
-    var catEl = document.getElementById('categories');
-    cats.forEach((c,i)=>{ var el=document.createElement('span'); el.className='cat-item'+(i===0?' active':''); el.textContent=c; el.onclick=()=>{ catEl.querySelectorAll('.cat-item').forEach(e=>e.classList.remove('active')); el.classList.add('active'); category=c==='全部'?'':c; page=1; loadItems(); }; catEl.appendChild(el); });
-    
-    function setSort(s) { sortBy=s; document.querySelectorAll('.sort-btn').forEach(e=>e.classList.remove('active')); event.target.classList.add('active'); page=1; loadItems(); }
-    function search() { keyword=document.getElementById('searchInput').value; page=1; loadItems(); }
-    
-    function loadItems() {
-      document.getElementById('homeLoading').textContent = '加载中...';
-      api('GET', '/api/items', { page, category, keyword, sort: sortBy }).then(res => {
-        document.getElementById('homeLoading').textContent = '';
-        if (res.code !== 0) return;
-        var grid = document.getElementById('itemGrid');
-        if (page === 1) grid.innerHTML = '';
-        (res.data.list || []).forEach(item => {
-          var card = document.createElement('div'); card.className = 'item-card';
-          card.innerHTML = '<img class="item-img" src="'+(item.images&&item.images[0]?API+item.images[0]:'')+'" onerror="this.style.display=\'none\'" /><div class="item-info"><div class="item-title">'+item.title+'</div><span class="item-price">🍞'+Number(item.price).toFixed(2)+'</span><div class="item-meta">'+item.category+'</div></div>';
-          card.onclick = () => loadDetail(item.id);
-          grid.appendChild(card);
-        });
-        if (res.data.list.length === 0 && page === 1) grid.innerHTML = '<div class="empty">暂无好物</div>';
-        if (res.data.page < res.data.totalPages) { page++; }
-      });
-    }
-    
-    // 详情
-    function loadDetail(id) {
-      showPage('detail');
-      document.getElementById('detailContent').innerHTML = '<div class="loading">加载中...</div>';
-      api('GET', '/api/items/'+id).then(res => {
-        if (res.code !== 0) return toast('加载失败');
-        var item = res.data;
-        currentItem = item;
-        var html = '';
-        if (item.images && item.images.length > 0) {
-          html += '<div style="height:300px;overflow:hidden;background:#f0f0f0;"><img src="'+API+item.images[0]+'" style="width:100%;height:100%;object-fit:cover;" /></div>';
-        }
-        html += '<div class="card"><div style="font-size:18px;font-weight:700;">'+item.title+'</div><div style="font-size:24px;color:#f60;font-weight:800;margin:8px 0;">🍞'+Number(item.price).toFixed(2)+'</div><div style="display:flex;gap:8px;font-size:12px;"><span style="color:#07c160;background:#e8f5e9;padding:2px 10px;border-radius:10px;">'+item.category+'</span></div></div>';
-        html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px;">📝 描述</div><div style="font-size:14px;color:#555;line-height:1.8;">'+(item.description||'暂无描述')+'</div></div>';
-        html += '<div class="card"><div class="seller-card"><div class="seller-avatar">'+(item.sellerName?item.sellerName[0]:'?')+'</div><div><div class="seller-name">'+item.sellerName+'</div></div></div></div>';
-        html += '<div style="position:fixed;bottom:60px;left:0;right:0;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid rgba(0,0,0,0.05);"><div><span style="font-size:22px;color:#f60;font-weight:800;">🍞'+Number(item.price).toFixed(2)+'</span></div><button class="btn btn-primary" style="width:auto;padding:10px 32px;font-size:14px;" onclick="openContact(\''+item.id+'\')">联系对方</button></div>';
-        document.getElementById('detailContent').innerHTML = html;
-      });
-    }
-    
-    // 联系
-    var currentContactItemId = '';
-    function openContact(id) {
-      currentContactItemId = id;
-      var item = currentItem;
-      document.getElementById('conPrice').textContent = item ? '🍞'+Number(item.price).toFixed(2) : '';
-      document.getElementById('conDate').value = ''; document.getElementById('conTime').value = '';
-      document.getElementById('conLocation').value = ''; document.getElementById('conPhone').value = '';
-      openModal('contactModal');
-    }
-    function submitContact() {
-      var d = document.getElementById('conDate').value;
-      var t = document.getElementById('conTime').value;
-      var loc = document.getElementById('conLocation').value;
-      var phone = document.getElementById('conPhone').value;
-      if (!d || !t) { toast('请选择时间'); return; }
-      api('POST', '/api/orders', { itemId: currentContactItemId, pickupTime: d+' '+t, pickupLocation: loc, contactPhone: phone }, true).then(res => {
-        closeModal('contactModal');
-        if (res.code === 0) {
-          var contact = res.data.itemContact || '';
-          if (contact) toast('对方联系方式：'+contact);
-          else toast('已通知对方');
-        } else toast(res.message || '失败');
-      });
-    }
-    
-    // 发布
-    function publish() {
-      if (!token) { doLogin(); return; }
-      var title = document.getElementById('pubTitle').value.trim();
-      var cat = document.getElementById('pubCategory').value;
-      var price = parseFloat(document.getElementById('pubPrice').value);
-      var contact = document.getElementById('pubContact').value.trim();
-      var desc = document.getElementById('pubDesc').value.trim();
-      if (!title) { toast('请输入标题'); return; }
-      if (!price || price <= 0) { toast('请输入心意'); return; }
-      if (!cat) { toast('请选择分类'); return; }
-      
-      var data = { title, category: cat, price, contact, description: desc };
-      api('POST', '/api/items', data, true).then(res => {
-        if (res.code === 0) { toast('添加成功！'); document.getElementById('pubTitle').value=''; document.getElementById('pubPrice').value=''; document.getElementById('pubContact').value=''; document.getElementById('pubDesc').value=''; document.getElementById('pubCategory').value=''; showPage('home'); loadItems(); }
-        else toast(res.message || '失败');
-      });
-    }
-    
-    // 个人中心
-    function loadProfile() {
-      if (!token) { document.getElementById('profileContent').innerHTML = '<div class="card"><button class="btn btn-primary" onclick="doLogin()">微信登录</button></div>'; return; }
-      var html = '<div class="card"><div style="text-align:center;"><div class="seller-avatar" style="margin:0 auto 12px;width:48px;height:48px;font-size:24px;">'+(user.nickname?user.nickname[0]:'?')+'</div><div style="font-size:18px;font-weight:600;">'+user.nickname+'</div></div></div>';
-      html += '<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:12px;">📋 我的</div>';
-      html += '<div style="font-size:14px;padding:8px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;" onclick="window.location.href=\''+API+'/api/items/my?token='+token+'\'">📦 我的好物</div>';
-      html += '<div style="font-size:14px;padding:8px 0;cursor:pointer;" onclick="toast(\'请在微信小程序中使用订单功能\')">📋 我的记录</div></div>';
-      html += '<div class="card"><button class="btn btn-secondary" onclick="logout()">退出登录</button></div>';
-      document.getElementById('profileContent').innerHTML = html;
-    }
-    function logout() { localStorage.clear(); token=''; user={}; toast('已退出'); doLogin(); }
-    
-    // 公告
-    function loadNotice() {
-      api('GET', '/api/announcements/latest').then(res => {
-        if (res.code === 0 && res.data) {
-          document.getElementById('noticeContent').textContent = res.data.title + '\n\n' + res.data.content;
-        }
-      });
-    }
-    document.getElementById('homeNoticeBtn').onclick = () => { loadNotice(); openModal('noticeModal'); };
-    
-    // 搜索
-    document.getElementById('searchInput').addEventListener('input', function() {
-      keyword = this.value;
-    });
-  </script>
+  </div>
+
+  <!-- ===== 公告弹窗 ===== -->
+  <div class="modal" id="noticeModal">
+    <div class="modal-content">
+      <div class="modal-title">📢 公告</div>
+      <div id="noticeBody" class="notice-box"></div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="modal('noticeModal',0)">知道了</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
