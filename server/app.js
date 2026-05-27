@@ -21,8 +21,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 静态文件：上传的图片
+// 静态文件：上传的图片 + 前端页面
 app.use('/uploads', express.static(path.join(__dirname, config.upload.dir)));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 前端页面入口
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // API 路由
 app.use('/api/auth', authRoutes);
