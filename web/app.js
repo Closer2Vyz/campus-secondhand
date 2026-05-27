@@ -67,8 +67,7 @@ function registerAccount() {
   var acc = getAccounts();
   if (acc[u]) { toast('用户名已存在'); return; }
   saveAccount(u, p);
-  // 调用 API 创建用户
-  api('POST','/api/auth/login',{mockOpenid:'web_'+u,nickname:u}).then(r=>{
+  api('POST','/api/auth/register',{username:u,password:p}).then(r=>{
     if(r.code===0){
       TOKEN=r.data.token; USER=r.data.user; USER.username=u;
       localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
@@ -82,7 +81,7 @@ function loginAccount() {
   if (!u || !p) { toast('请输入用户名和密码'); return; }
   var acc = getAccounts();
   if (acc[u] !== p) { toast('用户名或密码错误'); return; }
-  api('POST','/api/auth/login',{mockOpenid:'web_'+u,nickname:u}).then(r=>{
+  api('POST','/api/auth/login-password',{username:u,password:p}).then(r=>{
     if(r.code===0){
       TOKEN=r.data.token; USER=r.data.user; USER.username=u;
       localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));

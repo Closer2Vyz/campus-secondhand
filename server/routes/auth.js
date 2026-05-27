@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const https = require('https');
+const crypto = require('crypto');
 const config = require('../config');
 const { getDB } = require('../db');
 const authMiddleware = require('../middleware/auth');
@@ -140,6 +141,60 @@ router.post('/avatar', authMiddleware, uploadAvatar.single('avatar'), (req, res)
   db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(avatarPath, req.userId);
 
   res.json({ code: 0, data: { avatar: avatarPath }, message: '头像已更新' });
+});
+
+/**
+ * POST /api/auth/register
+ * 账号密码注册
+ */
+router.post('/register', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password || password.length < 3) {
+    return res.json({ code: 400, message: '用户名和密码不符合要求' });
+  }
+  const db = getDB();
+  const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+  if (existing) return res.json({ code: 400, message: '用户名已存在' });
+
+  const hashed = crypto.createHash('sha256').update(password).digest('hex');
+  const info = db.prepare(
+    'INSERT INTO users (openid, nickname, username, password) VALUES (?, ?, ?, ?)'
+  ).run('web_' + username, username, username, hashed);
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
+  const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '7d' });
+
+  res.json({
+    code: 0, data: {
+      token,
+      user: { id: user.id, nickname: user.nickname, avatar: user.avatar || '', phone: user.phone || '', campus: user.campus || '' },
+    }, message: '注册成功',
+  });
+});
+
+/**
+ * POST /api/auth/login-password
+ * 账号密码登录
+ */
+router.post('/login-password', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.json({ code: 400, message: '请输入用户名和密码' });
+
+  const db = getDB();
+  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  if (!user) return res.json({ code: 400, message: '用户名或密码错误' });
+
+  const hashed = crypto.createHash('sha256').update(password).digest('hex');
+  if (user.password !== hashed) return res.json({ code: 400, message: '用户名或密码错误' });
+
+  const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '7d' });
+
+  res.json({
+    code: 0, data: {
+      token,
+      user: { id: user.id, nickname: user.nickname, avatar: user.avatar || '', phone: user.phone || '', campus: user.campus || '' },
+    },
+  });
 });
 
 module.exports = router;
