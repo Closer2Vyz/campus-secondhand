@@ -37,7 +37,7 @@ Page({
       this.loadItem(id);
     } else {
       this.setData({ pageLoaded: true, loadFailed: true });
-      wx.showToast({ title: '商品ID缺失', icon: 'none' });
+      wx.showToast({ title: 'ID缺失', icon: 'none' });
     }
   },
 

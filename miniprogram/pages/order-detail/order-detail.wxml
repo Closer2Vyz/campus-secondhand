@@ -9,7 +9,7 @@
     </view>
   </view>
 
-  <!-- 商品信息 -->
+  <!-- 好物信息 -->
   <view class="card">
     <view class="order-item">
       <image class="oi-img" src="{{order.itemImages && order.itemImages.length > 0 ? serverURL + order.itemImages[0] : '/assets/placeholder.png'}}" mode="aspectFill" />
@@ -23,7 +23,7 @@
   <!-- 自提信息 -->
   <view class="card">
     <view class="info-row">
-      <text class="info-label">📅 自提时间</text>
+      <text class="info-label">📅 联系时间</text>
       <text class="info-value">{{formatTime(order.pickupTime)}}</text>
     </view>
     <view class="info-row">
@@ -36,22 +36,22 @@
     </view>
   </view>
 
-  <!-- 卖家联系方式（仅买家可见） -->
+  <!-- 对方联系方式（仅买家可见） -->
   <view class="card" wx:if="{{isBuyer && order.itemContact}}">
     <view class="info-row">
-      <text class="info-label">📞 卖家联系方式</text>
+      <text class="info-label">📞 对方联系方式</text>
       <text class="info-value" style="color:#07c160;font-weight:600;">{{order.itemContact}}</text>
     </view>
   </view>
 
-  <!-- 费用明细 -->
+  <!-- 详情 -->
   <view class="card">
     <view class="info-row">
-      <text class="info-label">商品价格</text>
+      <text class="info-label">物品估价</text>
       <text class="info-value">{{formatPrice(order.itemPrice)}}</text>
     </view>
     <view class="info-row total-row">
-      <text class="total-label">合计实付</text>
+      <text class="total-label">参考数量</text>
       <text class="total-price">{{formatPrice(order.totalPrice)}}</text>
     </view>
   </view>
@@ -64,15 +64,17 @@
     <button class="action-btn btn-secondary" wx:if="{{isBuyer && order.status === 'pending'}}" bindtap="onCancelOrder">
       ❌ 取消订单
     </button>
+    <!-- 评价功能（审核通过后开放）
     <button class="action-btn btn-primary" wx:if="{{isBuyer && order.status === 'completed'}}" bindtap="onRate">
-      ⭐ 评价卖家
+      ⭐ 评价对方
     </button>
+    -->
   </view>
 
   <!-- 评价弹窗 -->
   <view wx:if="{{showRating}}" bindtap="onCancelRating" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;z-index:999;">
     <view catchtap style="background:#fff;border-radius:28rpx 28rpx 0 0;width:100%;padding:40rpx 32rpx;padding-bottom:calc(40rpx + env(safe-area-inset-bottom));">
-      <text style="font-size:34rpx;font-weight:700;color:#333;display:block;text-align:center;margin-bottom:28rpx;">⭐ 评价卖家</text>
+      <text style="font-size:34rpx;font-weight:700;color:#333;display:block;text-align:center;margin-bottom:28rpx;">⭐ 评价对方</text>
 
       <!-- 星星 -->
       <view style="display:flex;justify-content:center;gap:16rpx;margin-bottom:28rpx;">

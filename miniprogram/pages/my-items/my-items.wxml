@@ -1,9 +1,9 @@
 <!-- 我的发布 -->
 <view class="page {{darkMode ? 'dark-mode' : ''}}">
   <view class="tabs">
-    <view class="tab {{activeTab === 'active' ? 'active' : ''}}" bindtap="switchTab" data-tab="active">在售</view>
-    <view class="tab {{activeTab === 'sold' ? 'active' : ''}}" bindtap="switchTab" data-tab="sold">已售</view>
-    <view class="tab {{activeTab === 'inactive' ? 'active' : ''}}" bindtap="switchTab" data-tab="inactive">已下架</view>
+    <view class="tab {{activeTab === 'active' ? 'active' : ''}}" bindtap="switchTab" data-tab="active">展示中</view>
+    <view class="tab {{activeTab === 'sold' ? 'active' : ''}}" bindtap="switchTab" data-tab="sold">已完成</view>
+    <view class="tab {{activeTab === 'inactive' ? 'active' : ''}}" bindtap="switchTab" data-tab="inactive">已隐藏</view>
   </view>
 
   <view class="list">
@@ -15,13 +15,13 @@
         <text class="list-status tag-{{item.status}}">{{itemStatusText(item.status)}}</text>
       </view>
       <view class="list-actions">
-        <button class="action-btn" wx:if="{{activeTab === 'active'}}" bindtap="onSoldIt" data-id="{{item.id}}">标记已售</button>
+        <button class="action-btn" wx:if="{{activeTab === 'active'}}" bindtap="onSoldIt" data-id="{{item.id}}">标记完成</button>
         <button class="action-btn danger" bindtap="onDeleteItem" data-id="{{item.id}}">🗑️ 删除</button>
       </view>
     </view>
   </view>
 
   <view class="empty-state" wx:if="{{items.length === 0}}">
-    <text>暂无商品</text>
+    <text>暂无好物</text>
   </view>
 </view>

@@ -16,7 +16,7 @@ function formatTime(dateStr) {
 
 // 格式化价格
 function formatPrice(price) {
-  return '¥' + Number(price).toFixed(2);
+  return '🍞' + Number(price).toFixed(2);
 }
 
 // 订单状态中文

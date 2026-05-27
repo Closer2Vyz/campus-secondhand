@@ -1,3 +1,6 @@
+var that; // 页面引用
+var canvas, ctx, img; // 不存 data 里，直接存变量
+
 Page({
   data: {
     imagePath: '',
@@ -16,21 +19,21 @@ Page({
   },
 
   onLoad: function(options) {
+    that = this;
     if (options && options.path) {
       var path = decodeURIComponent(options.path);
-      this.setData({ imagePath: path });
-      this.initCanvas();
+      that.setData({ imagePath: path });
+      that.initCanvas();
     } else {
       wx.showToast({ title: '图片路径缺失', icon: 'none' });
     }
   },
 
   initCanvas: function() {
-    var that = this;
     var query = wx.createSelectorQuery();
     query.select('#cropCanvas').fields({ node: true, size: true }).exec(function(res) {
-      var canvas = res[0].node;
-      var ctx = canvas.getContext('2d');
+      canvas = res[0].node;
+      ctx = canvas.getContext('2d');
       var dpr = wx.getSystemInfoSync().pixelRatio;
       var width = res[0].width;
       var height = res[0].height;
@@ -42,57 +45,46 @@ Page({
       var cropSize = Math.min(width, height) * 0.7;
       that.setData({ canvasWidth: width, canvasHeight: height, cropSize: cropSize });
 
-      // 加载图片
-      var img = canvas.createImage();
+      img = canvas.createImage();
       img.src = that.data.imagePath;
       img.onload = function() {
-        // 计算初始位置（居中、最大适配）
         var scale = Math.min(width / img.width, height / img.height) * 0.8;
         var imgW = img.width * scale;
         var imgH = img.height * scale;
-        var imgX = (width - imgW) / 2;
-        var imgY = (height - imgH) / 2;
-
         that.setData({
-          imgX: imgX, imgY: imgY, imgW: imgW, imgH: imgH,
+          imgX: (width - imgW) / 2,
+          imgY: (height - imgH) / 2,
+          imgW: imgW,
+          imgH: imgH,
           loaded: true,
-          img: img,
-          ctx: ctx,
-          canvas: canvas,
         });
-
         that.drawImage();
       };
     });
   },
 
   drawImage: function() {
-    var data = this.data;
-    if (!data.ctx || !data.img) return;
-    var ctx = data.ctx;
+    if (!ctx || !img) return;
+    var data = that.data;
     var width = data.canvasWidth;
     var height = data.canvasHeight;
 
     ctx.clearRect(0, 0, width, height);
-    // 画半透明背景
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(0, 0, width, height);
 
-    // 裁剪区域挖空
     var cs = data.cropSize;
     var cx = (width - cs) / 2;
     var cy = (height - cs) / 2;
     ctx.clearRect(cx, cy, cs, cs);
 
-    // 画图片
     ctx.save();
     ctx.beginPath();
     ctx.rect(cx, cy, cs, cs);
     ctx.clip();
-    ctx.drawImage(data.img, data.imgX, data.imgY, data.imgW, data.imgH);
+    ctx.drawImage(img, data.imgX, data.imgY, data.imgW, data.imgH);
     ctx.restore();
 
-    // 画边框
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 4;
     ctx.strokeRect(cx, cy, cs, cs);
@@ -100,23 +92,23 @@ Page({
 
   onTouchStart: function(e) {
     var touch = e.touches[0];
-    this.setData({
+    that.setData({
       startX: touch.clientX,
       startY: touch.clientY,
-      startImgX: this.data.imgX,
-      startImgY: this.data.imgY,
+      startImgX: that.data.imgX,
+      startImgY: that.data.imgY,
     });
   },
 
   onTouchMove: function(e) {
     var touch = e.touches[0];
-    var dx = touch.clientX - this.data.startX;
-    var dy = touch.clientY - this.data.startY;
-    this.setData({
-      imgX: this.data.startImgX + dx,
-      imgY: this.data.startImgY + dy,
+    var dx = touch.clientX - that.data.startX;
+    var dy = touch.clientY - that.data.startY;
+    that.setData({
+      imgX: that.data.startImgX + dx,
+      imgY: that.data.startImgY + dy,
     });
-    this.drawImage();
+    that.drawImage();
   },
 
   onCancel: function() {
@@ -124,15 +116,14 @@ Page({
   },
 
   onConfirm: function() {
-    var that = this;
-    var data = this.data;
+    var data = that.data;
     var cs = data.cropSize;
     var cx = (data.canvasWidth - cs) / 2;
     var cy = (data.canvasHeight - cs) / 2;
     var dpr = wx.getSystemInfoSync().pixelRatio;
 
     wx.canvasToTempFilePath({
-      canvas: data.canvas,
+      canvas: canvas,
       x: cx * dpr,
       y: cy * dpr,
       width: cs * dpr,

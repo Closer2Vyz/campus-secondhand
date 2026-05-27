@@ -1,9 +1,9 @@
-<!-- 发布商品 -->
+<!-- 添加物品 -->
 <view class="page {{darkMode ? 'dark-mode' : ''}}">
   <view class="card">
     <!-- 图片上传 -->
     <view class="upload-section">
-      <text class="section-label">📷 商品图片</text>
+      <text class="section-label">📷 好物图片</text>
       <text class="section-hint">最多上传 6 张，可拖动排序</text>
       <view class="upload-grid">
         <view class="upload-item" wx:for="{{images}}" wx:key="index">
@@ -19,9 +19,9 @@
 
     <!-- 标题 -->
     <view class="input-group">
-      <text class="input-label">📝 商品标题</text>
+      <text class="input-label">📝 好物标题</text>
       <view class="input-wrap">
-        <input placeholder="输入商品名称" maxlength="30" bindinput="onTitleInput" />
+        <input placeholder="输入好物名称" maxlength="30" bindinput="onTitleInput" />
       </view>
       <text wx:if="{{title}}" class="input-preview">当前输入：{{title}}</text>
     </view>
@@ -36,12 +36,12 @@
 
     <!-- 价格 -->
     <view class="input-group">
-      <text class="input-label">💰 价格</text>
+      <text class="input-label">🍞 心意</text>
       <view class="price-input-wrap">
-        <text class="price-currency">¥</text>
+        <text class="price-currency">🍞</text>
         <input placeholder="0.00" bindinput="onPriceInput" class="price-input" />
       </view>
-      <text wx:if="{{price}}" class="input-preview">当前输入：¥{{price}}</text>
+      <text wx:if="{{price}}" class="input-preview">当前输入：{{price}}</text>
     </view>
 
     <!-- 库存 -->
@@ -50,7 +50,7 @@
       <view class="input-wrap">
         <input placeholder="1" type="number" bindinput="onStockInput" value="{{stock}}" />
       </view>
-      <text class="input-hint">默认为 1，多件商品填实际库存数量</text>
+      <text class="input-hint">默认为 1，多件好物填实际库存数量</text>
     </view>
 
     <!-- 联系方式 -->
@@ -63,17 +63,17 @@
 
     <!-- 描述 -->
     <view class="input-group">
-      <text class="input-label">📄 商品描述</text>
-      <textarea placeholder="描述商品成色、购买时间、原价等，让买家更了解你的商品～" maxlength="500" bindinput="onDescInput" />
+      <text class="input-label">📄 好物描述</text>
+      <textarea placeholder="描述好物成色、购买时间、原价等，让买家更了解你的好物～" maxlength="500" bindinput="onDescInput" />
       <text class="char-count">{{description.length}}/500</text>
       <text wx:if="{{description}}" class="input-preview">{{description}}</text>
     </view>
   </view>
 
   <button class="btn-submit" bindtap="onPublish" wx:if="{{!submitting}}">
-    ✨ 发布商品
+    ✨ 添加物品
   </button>
   <button class="btn-submit disabled" wx:else>
-    ⏳ 发布中…
+    ⏳ 提交中…
   </button>
 </view>

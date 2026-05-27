@@ -4,7 +4,7 @@
   <view class="search-bar">
     <view class="search-input-wrap">
       <text class="search-icon">🔍</text>
-      <input class="search-input" placeholder="搜索商品名称" bindinput="onSearchInput" value="{{keyword}}" confirm-type="search" bindconfirm="onSearch" />
+      <input class="search-input" placeholder="搜索物品名称" bindinput="onSearchInput" value="{{keyword}}" confirm-type="search" bindconfirm="onSearch" />
       <text wx:if="{{keyword}}" class="search-clear" bindtap="onClearSearch">✕</text>
     </view>
     <text class="search-btn" bindtap="onSearch">搜索</text>
@@ -35,14 +35,14 @@
     <view class="section-actions">
       <view class="sort-options">
         <text class="sort-option {{sortBy === 'time_desc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="time_desc">最新</text>
-        <text class="sort-option {{sortBy === 'price_asc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price_asc">价格↑</text>
-        <text class="sort-option {{sortBy === 'price_desc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price_desc">价格↓</text>
+        <text class="sort-option {{sortBy === 'price_asc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price_asc">心意↑</text>
+        <text class="sort-option {{sortBy === 'price_desc' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price_desc">心意↓</text>
       </view>
       <text class="section-more" bindtap="onShowAnnouncement">📢 公告</text>
     </view>
   </view>
 
-  <!-- 商品列表 -->
+  <!-- 物品列表 -->
   <view class="item-list">
     <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
       <view class="item-card-inner">
@@ -90,6 +90,6 @@
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{items.length === 0 && !loading && !loadError}}">
     <text class="empty-icon">📭</text>
-    <text>还没有商品，快来发布吧</text>
+    <text>还没有物品，快来添加吧</text>
   </view>
 </view>

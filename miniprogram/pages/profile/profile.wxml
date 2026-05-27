@@ -6,8 +6,8 @@
       <view class="login-logo">
         <text class="login-emoji">🏫</text>
       </view>
-      <text class="login-title">校内二手集市</text>
-      <text class="login-desc">登录后发布闲置、淘好物<br/>仅限本校学生使用</text>
+      <text class="login-title">校内好物圈</text>
+      <text class="login-desc">发布和浏览好物<br/>仅限本校学生使用</text>
       <button class="login-btn" bindtap="onLogin">
         <text class="btn-icon">💬</text>
         <text>微信一键登录</text>
@@ -44,7 +44,7 @@
         </view>
         <view class="menu-texts">
           <text class="menu-text">我的发布</text>
-          <text class="menu-desc">查看和管理你发布的商品</text>
+          <text class="menu-desc">查看和管理你发布的好物</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -53,8 +53,8 @@
           <text class="menu-icon">📋</text>
         </view>
         <view class="menu-texts">
-          <text class="menu-text">我的订单</text>
-          <text class="menu-desc">查看买到的和卖出的订单</text>
+          <text class="menu-text">我的记录</text>
+          <text class="menu-desc">查看我联系的和卖出的订单</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -77,7 +77,7 @@
         </view>
         <view class="menu-texts">
           <text class="menu-text">我的收藏</text>
-          <text class="menu-desc">查看收藏的商品</text>
+          <text class="menu-desc">查看收藏的好物</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -90,7 +90,7 @@
         </view>
         <view class="menu-texts">
           <text class="menu-text">管理后台</text>
-          <text class="menu-desc">发布公告、更新广告图</text>
+          <text class="menu-desc">公告管理、更新广告图</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>

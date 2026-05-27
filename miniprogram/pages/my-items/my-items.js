@@ -52,8 +52,8 @@ Page({
     var that = this;
     var id = e.currentTarget.dataset.id;
     wx.showModal({
-      title: '删除商品',
-      content: '确定删除该商品？此操作不可恢复',
+      title: '删除记录',
+      content: '确定删除？不可恢复',
       success: function(res) {
         if (res.confirm) {
           api.deleteItem(id).then(function() {
@@ -72,7 +72,7 @@ Page({
     var id = e.currentTarget.dataset.id;
     wx.showModal({
       title: '标记已售',
-      content: '确认该商品已卖出？',
+      content: '确认已完成？',
       success: function(res) {
         if (res.confirm) {
           api.deleteItem(id).then(function() {

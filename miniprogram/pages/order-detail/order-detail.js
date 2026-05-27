@@ -54,7 +54,7 @@ Page({
 
       var statusIcon = order.status === 'pending' ? '⏳' : order.status === 'completed' ? '✅' : '❌';
       var statusTitle = order.status === 'pending' ? '等待自提' : order.status === 'completed' ? '交易完成' : '已取消';
-      var statusDesc = order.status === 'pending' ? '请联系卖家，按时到约定地点自提' : order.status === 'completed' ? '感谢使用校内二手集市' : '订单已取消';
+      var statusDesc = order.status === 'pending' ? '请联系卖家，按时到约定地点自提' : order.status === 'completed' ? '感谢使用校内好物圈' : '订单已取消';
 
       that.setData({
         order: order,
@@ -73,7 +73,7 @@ Page({
     var that = this;
     wx.showModal({
       title: '确认自提',
-      content: '买家已取走商品？确认后交易完成',
+      content: '对方已取走？确认完成',
       success: function(res) {
         if (res.confirm) {
           api.confirmPickup(that.data.order.id).then(function() {

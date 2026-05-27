@@ -58,13 +58,13 @@ Page({
     var remain = 6 - this.data.images.length;
     var that = this;
     wx.chooseImage({
-      count: 1,
+      count: remain,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: function(res) {
-        // 跳转到裁剪页
-        wx.navigateTo({
-          url: '/pages/crop/crop?path=' + encodeURIComponent(res.tempFilePaths[0]),
+        // 直接添加图片（裁剪在真机上有兼容问题，暂时跳过）
+        that.setData({
+          images: that.data.images.concat(res.tempFilePaths),
         });
       },
       fail: function(err) {
@@ -74,12 +74,7 @@ Page({
     });
   },
 
-  // 接收裁剪后的图片
-  addCroppedImage: function(tempPath) {
-    var list = this.data.images;
-    list.push(tempPath);
-    this.setData({ images: list });
-  },
+
 
   onRemoveImage: function(e) {
     var index = e.currentTarget.dataset.index;
@@ -105,7 +100,7 @@ Page({
     var images = this.data.images;
 
     if (!title.trim()) {
-      wx.showToast({ title: '请输入商品标题', icon: 'none' });
+      wx.showToast({ title: '请输入标题', icon: 'none' });
       return;
     }
     if (!price || isNaN(price) || Number(price) <= 0) {
@@ -155,7 +150,7 @@ Page({
     // 逐张上传到云存储
     function uploadNext(i) {
       if (i >= images.length) {
-        // 全部上传完成，提交商品数据
+        // 全部上传完成，提交数据
         api.publishItem({
           title: that.data.title.trim(),
           description: that.data.description.trim(),

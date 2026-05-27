@@ -4,7 +4,7 @@ const db = cloud.database();
 const _ = db.command;
 
 // ⚠️ 你的 openid：第一次登录后去 云开发控制台→数据库→users 集合里查
-const ADMIN_OPENID = '';
+const ADMIN_OPENID = 'okbtI3fQQGNLPyBFro6eSSHngv9c';
 
 exports.main = async (event) => {
   const { action, data } = event;

@@ -17,7 +17,7 @@
     </view>
 
     <view class="section-header">
-      <text class="section-title">在售商品</text>
+      <text class="section-title">展示中</text>
     </view>
 
     <view class="item-list">
@@ -33,7 +33,7 @@
     </view>
 
     <view wx:if="{{items.length === 0}}" class="empty-state">
-      <text>暂无在售商品</text>
+      <text>暂无展示中</text>
     </view>
   </view>
 </view>
