@@ -23,14 +23,71 @@ function api(method, path, data, auth) {
   return fetch(url, opts).then(r=>r.json());
 }
 
-// ===== 登录 =====
+// ===== 账号系统 =====
+var ACCOUNTS_KEY = 'web_accounts';
+
+function getAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveAccount(user, pass) {
+  var acc = getAccounts();
+  acc[user] = pass;
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc));
+}
+
 function doLogin() {
   if (TOKEN) { showPage('profile'); loadProfile(); return; }
-  var name = prompt('输入昵称（或直接确定）') || '同学';
-  api('POST','/api/auth/login',{mockOpenid:'web_'+Date.now(),nickname:name}).then(r=>{
-    if(r.code===0){ TOKEN=r.data.token; USER=r.data.user; localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
-      toast('登录成功'); showPage('home'); loadItems(); loadProfile(); $( 'loginNotice').innerHTML=''; }
-    else toast(r.message||'登录失败');
+  $('loginNotice').innerHTML = '\
+<div class="card" style="margin-top:8px">\
+  <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">登录</div>\
+  <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="loginUser" placeholder="请输入用户名" /></div>\
+  <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="loginPass" type="password" placeholder="请输入密码" /></div>\
+  <button class="btn btn-primary" onclick="loginAccount()">登录</button>\
+  <div style="text-align:center;margin-top:12px;font-size:13px;color:#666">还没有账号？<a href="javascript:showRegister()" style="color:#07c160">注册</a></div>\
+</div>';
+}
+
+function showRegister() {
+  $('loginNotice').innerHTML = '\
+<div class="card" style="margin-top:8px">\
+  <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">注册</div>\
+  <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="regUser" placeholder="设置用户名" /></div>\
+  <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="regPass" type="password" placeholder="设置密码" /></div>\
+  <div class="form-group"><label class="form-label">确认密码</label><input class="form-input" id="regPass2" type="password" placeholder="再次输入密码" /></div>\
+  <button class="btn btn-primary" onclick="registerAccount()">注册</button>\
+  <div style="text-align:center;margin-top:12px;font-size:13px;color:#666">已有账号？<a href="javascript:doLogin()" style="color:#07c160">登录</a></div>\
+</div>';
+}
+
+function registerAccount() {
+  var u = $('regUser').value.trim(), p = $('regPass').value, p2 = $('regPass2').value;
+  if (!u) { toast('请输入用户名'); return; }
+  if (p.length < 3) { toast('密码至少3位'); return; }
+  if (p !== p2) { toast('两次密码不一致'); return; }
+  var acc = getAccounts();
+  if (acc[u]) { toast('用户名已存在'); return; }
+  saveAccount(u, p);
+  // 调用 API 创建用户
+  api('POST','/api/auth/login',{mockOpenid:'web_'+u,nickname:u}).then(r=>{
+    if(r.code===0){
+      TOKEN=r.data.token; USER=r.data.user; USER.username=u;
+      localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
+      toast('注册成功'); showPage('home'); loadItems(); loadProfile(); $('loginNotice').innerHTML='';
+    } else toast(r.message||'注册失败');
+  });
+}
+
+function loginAccount() {
+  var u = $('loginUser').value.trim(), p = $('loginPass').value;
+  if (!u || !p) { toast('请输入用户名和密码'); return; }
+  var acc = getAccounts();
+  if (acc[u] !== p) { toast('用户名或密码错误'); return; }
+  api('POST','/api/auth/login',{mockOpenid:'web_'+u,nickname:u}).then(r=>{
+    if(r.code===0){
+      TOKEN=r.data.token; USER=r.data.user; USER.username=u;
+      localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
+      toast('登录成功'); showPage('home'); loadItems(); loadProfile(); $('loginNotice').innerHTML='';
+    } else toast(r.message||'登录失败');
   });
 }
 
@@ -202,6 +259,6 @@ window.onload = function() {
   
   // 自动登录
   if(!TOKEN){
-    $('loginNotice').innerHTML = '<div class="card" style="text-align:center;padding:24px"><div style="font-size:16px;margin-bottom:12px">欢迎使用校内好物圈</div><button class="btn btn-primary" onclick="doLogin()" style="max-width:200px;margin:0 auto">开始使用</button></div>';
+    doLogin();
   }
 };
