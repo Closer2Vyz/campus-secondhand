@@ -6,7 +6,7 @@ const config = require('../config');
  * 从 Authorization: Bearer <token> 或 x-token 头中提取
  */
 function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization || req.headers['x-token'];
+  const authHeader = req.headers.authorization || req.headers['x-token'] || req.query.token;
   if (!authHeader) {
     return res.status(401).json({ code: 401, message: '未登录' });
   }
