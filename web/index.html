@@ -189,13 +189,20 @@ function openContact(){
 </div></div>`;
 }
 
+let LAST_ORDER = null;
 function submitContact(){
   let d=$('conD').value, t=$('conT').value, l=$('conL').value, p=$('conP').value;
   if(!d||!t){toast('请选择时间');return;}
   if(!TOKEN){go('profile');return;}
   api('POST','/api/orders',{itemId:CUR_ITEM.id,pickupTime:d+' '+t,pickupLocation:l,contactPhone:p},1).then(r=>{
-    if(r.code===0){ let c=r.data&&r.data.itemContact; toast(c?'对方: '+c:'已通知对方'); go('detail'); }
-    else toast(r.message||'失败');
+    if(r.code===0){
+      LAST_ORDER = r.data;
+      LAST_ORDER.itemTitle = CUR_ITEM.title;
+      LAST_ORDER.itemPrice = CUR_ITEM.price;
+      LAST_ORDER.sellerName = CUR_ITEM.sellerName;
+      LAST_ORDER.sellerContact = CUR_ITEM.contact || (r.data&&r.data.itemContact||'');
+      go('orderdetail');
+    } else toast(r.message||'失败');
   });
 }
 
@@ -394,10 +401,35 @@ function showOrder(id){ CUR_ORDER_ID=id; go('orderdetail'); }
 // ====== 订单详情 ======
 let CUR_ORDER_ID = null;
 function renderOrderDetail(el){
-  el.innerHTML = `<div class="header"><span class="hb" onclick="go('myorders')">← 返回</span><span class="ht">记录详情</span><span></span></div><div class="loading" style="padding:40px;text-align:center;color:#999">加载中...</div>`;
-  // 暂简化为查找订单
-  toast('订单功能请在微信小程序中使用');
-  go('profile');
+  if(!LAST_ORDER){ go('home'); return; }
+  let o = LAST_ORDER;
+  let h = `
+<div class="header"><span class="hb" onclick="go('home')">← 返回</span><span class="ht">订单详情</span><span></span></div>
+<div class="card" style="margin-top:4px">
+  <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ 已通知对方</div>
+  <div style="font-size:14px;color:#555;line-height:1.8">请按时到约定地点完成交易</div>
+</div>
+<div class="card">
+  <div class="info-row"><span class="info-label">📦 物品</span><span style="font-weight:500">${escHtml(o.itemTitle)}</span></div>
+  <div class="info-row"><span class="info-label">🍞 心意</span><span style="font-weight:700;color:#f60">🍞${Number(o.itemPrice||o.totalPrice).toFixed(2)}</span></div>
+</div>
+<div class="card">
+  <div class="card-title">📋 联系信息</div>
+  <div class="info-row"><span class="info-label">📅 日期</span><span>${escHtml(o.pickupTime||'')}</span></div>
+  <div class="info-row"><span class="info-label">📍 地点</span><span>${escHtml(o.pickupLocation||'待约定')}</span></div>
+  <div class="info-row"><span class="info-label">📞 你的手机</span><span>${escHtml(o.contactPhone||'')}</span></div>
+</div>
+<div class="card">
+  <div class="card-title">👤 对方联系方式</div>
+  <div style="font-size:16px;color:#07c160;font-weight:600;text-align:center;padding:12px;background:#e8f5e9;border-radius:8px;cursor:pointer" onclick="copyText('${escHtml(o.sellerContact||o.sellerName)}')">
+    📞 ${escHtml(o.sellerContact||'暂无')}
+  </div>
+  <div style="font-size:12px;color:#999;text-align:center;margin-top:8px">点上方复制联系方式</div>
+</div>`;
+  el.innerHTML = h;
+}
+function copyText(t){
+  navigator.clipboard.writeText(t).then(()=>toast('已复制')).catch(()=>toast('复制失败'));
 }
 
 // ====== 收藏 ======
