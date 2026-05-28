@@ -4,6 +4,11 @@
   "scripts": {
     "build": "cd server && npm install",
     "start": "cd server && node app.js",
-    "postinstall": "cd server && npm install"
+    "postinstall": "cd server && npm install",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.95.0"
   }
 }

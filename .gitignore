@@ -4,3 +4,10 @@ server/data.db-wal
 server/data.db-shm
 server/uploads/
 .DS_Store
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
