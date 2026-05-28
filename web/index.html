@@ -205,6 +205,7 @@ function renderPublish(el){
   el.innerHTML = `
 <div class="header"><span class="ht">添加好物</span><span></span></div>
 <div class="card" style="margin-top:4px">
+<div class="fg"><label>📷 图片（可选）</label><input type="file" id="pImg" accept="image/*" style="width:100%;padding:8px 0"/></div>
 <div class="fg"><label>📝 标题</label><input class="fi" id="pT" placeholder="输入标题"/></div>
 <div class="fg"><label>🏷️ 分类</label><select class="fi" id="pC">${COLS.slice(1).map(c=>'<option>'+c+'</option>').join('')}</select></div>
 <div class="fg"><label>🍞 心意</label><input class="fi" id="pP" placeholder="0.00" type="number" step="0.01"/></div>
@@ -220,11 +221,27 @@ function doPublish(){
   if(!t){toast('请输入标题');return;}
   if(!p||p<=0){toast('请输入心意');return;}
   showLoading();
-  api('POST','/api/items',{title:t,category:c,price:p,contact:co,description:d},1).then(r=>{
-    hideLoading();
-    if(r.code===0){toast('添加成功！');go('home');}
-    else toast(r.message||'失败');
-  });
+  
+  let fileInput = $('pImg');
+  let hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+  
+  if(hasFile){
+    let fd = new FormData();
+    fd.append('images', fileInput.files[0]);
+    fd.append('title', t); fd.append('category', c); fd.append('price', String(p));
+    fd.append('contact', co); fd.append('description', d);
+    fetch(API+'/api/items', {method:'POST', headers:{'Authorization':'Bearer '+TOKEN}, body:fd}).then(r=>r.json()).then(r=>{
+      hideLoading();
+      if(r.code===0){toast('添加成功！');go('home');}
+      else toast(r.message||'失败');
+    }).catch(()=>{hideLoading();toast('上传失败');});
+  } else {
+    api('POST','/api/items',{title:t,category:c,price:p,contact:co,description:d},1).then(r=>{
+      hideLoading();
+      if(r.code===0){toast('添加成功！');go('home');}
+      else toast(r.message||'失败');
+    });
+  }
 }
 
 // ====== 个人中心 ======
@@ -349,9 +366,17 @@ function renderMyItems(el){
   api('GET','/api/items/my',{token:TOKEN},1).then(r=>{
     if(r.code!==0) return;
     let list = r.data.list||[];
-    let html = list.map(item=>`<div class="list-item"><div class="list-item-body"><div class="list-item-title">${escHtml(item.title)}</div><div class="list-item-price">🍞${Number(item.price).toFixed(2)}</div><div class="list-item-status">${item.status}</div></div></div>`).join('');
+    let html = list.map(item=>`<div class="list-item"><div class="list-item-body"><div class="list-item-title">${escHtml(item.title)}</div><div class="list-item-price">🍞${Number(item.price).toFixed(2)}</div><div class="list-item-status" style="font-size:12px;color:#999">${item.status==='active'?'展示中':item.status==='sold'?'已售':'已下架'}</div></div><div style="display:flex;flex-direction:column;gap:4px"><span class="btn btn-primary" style="padding:4px 12px;font-size:11px;border-radius:12px;width:auto" onclick="markSold('${item.id||item._id}')">标记</span><span class="btn" style="padding:4px 12px;font-size:11px;border-radius:12px;width:auto;background:#ff4d4f;color:#fff" onclick="delItem('${item.id||item._id}')">🗑️</span></div></div>`).join('');
     $('miList').innerHTML = html||'<div class="empty">暂无好物</div>';
   });
+}
+function markSold(id){
+  if(!confirm('标记为已售？')) return;
+  api('PUT','/api/items/'+id,{status:'sold'},1).then(r=>{if(r.code===0){toast('已标记');renderMyItems($('app'));}else toast(r.message);});
+}
+function delItem(id){
+  if(!confirm('确定删除？不可恢复')) return;
+  api('DELETE','/api/items/'+id,{},1).then(r=>{if(r.code===0){toast('已删除');renderMyItems($('app'));}else toast(r.message);});
 }
 
 // ====== 我的记录 ======
