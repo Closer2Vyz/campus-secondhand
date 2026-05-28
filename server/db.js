@@ -99,10 +99,22 @@ async function initDB() {
   });
 
   var sqlDb;
+  var needFresh = false;
   try {
     var buffer = fs.readFileSync(DB_PATH);
-    sqlDb = new SQL.Database(buffer);
+    if (buffer.length > 0 && buffer.slice(0, 1).toString() !== 'S') {
+      needFresh = true; // 不是 SQLite 格式，重新创建
+    }
+    if (!needFresh) {
+      sqlDb = new SQL.Database(buffer);
+      // 测试是否能查询
+      sqlDb.exec('SELECT count(*) FROM users');
+    }
   } catch (e) {
+    needFresh = true;
+  }
+  if (needFresh || !sqlDb) {
+    try { fs.unlinkSync(DB_PATH); } catch(e) {}
     sqlDb = new SQL.Database();
   }
 
