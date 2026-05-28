@@ -1,127 +1,387 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>校内好物圈</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>校内好物圈</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="toast" class="toast"></div>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+<div id="loading" class="loading-mask" style="display:none"><div class="loading-box">加载中...</div></div>
 
-  <!-- ===== 首页 ===== -->
-  <div id="page-home" class="page active">
-    <div class="header">
-      <span class="header-title">校内好物圈</span>
-      <span class="header-btn" onclick="loadNotice()">📢</span>
-    </div>
-    <div class="search-bar">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input id="searchInput" placeholder="搜索好物" />
-      </div>
-      <span id="searchBtn" style="background:#07c160;color:#fff;border:none;border-radius:20px;padding:0 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;">搜索</span>
-    </div>
-    <div id="loginNotice"></div>
-    <div class="cats" id="cats"></div>
-    <div id="bannerArea"></div>
-    <div class="sort-bar">
-      <span class="sort-btn active" onclick="setSort('time_desc')">最新</span>
-      <span class="sort-btn" onclick="setSort('price_asc')">心意↑</span>
-      <span class="sort-btn" onclick="setSort('price_desc')">心意↓</span>
-    </div>
-    <div class="grid" id="itemList"></div>
-    <div id="loadMore" style="display:none;text-align:center;padding:16px;color:#999;cursor:pointer;" onclick="loadMore()">加载更多</div>
-  </div>
+<script>
+// ====== 配置 ======
+const API = '';
+const COLS = ['全部','教材','数码','生活','体育','其他','虚拟物品'];
+const COLS_ICON = ['🛍️','📚','📱','🧥','⚽','🎲','💻'];
 
-  <!-- ===== 详情 ===== -->
-  <div id="page-detail" class="page">
-    <div class="header">
-      <span class="header-back" onclick="showPage('home')">← 返回</span>
-      <span class="header-title">详情</span>
-      <span></span>
-    </div>
-    <div id="detailContent"></div>
-    <div id="detailBottom" class="detail-bottom" style="display:none"></div>
-  </div>
+// ====== 状态 ======
+let TOKEN = localStorage.getItem('token')||'';
+let USER = JSON.parse(localStorage.getItem('user')||'{}');
+let CUR_PAGE = 'home';
+let PAGE_HOME = 1, SORT = 'time_desc', CAT = '', KEYWORD = '', LOADING = false, HAS_MORE = false;
+let CUR_ITEM = null;
 
-  <!-- ===== 发布 ===== -->
-  <div id="page-publish" class="page">
-    <div class="header">
-      <span class="header-back" onclick="showPage('home')">← 返回</span>
-      <span class="header-title">添加好物</span>
-      <span></span>
-    </div>
-    <div class="card" style="margin-top:4px">
-      <div class="form-group">
-        <label class="form-label">📝 标题</label>
-        <input class="form-input" id="pubTitle" placeholder="输入标题" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">🏷️ 分类</label>
-        <select class="form-input form-select" id="pubCat">
-          <option value="">请选择</option>
-          <option>教材</option><option>数码</option><option>生活</option><option>体育</option><option>其他</option><option>虚拟物品</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">🍞 心意</label>
-        <input class="form-input" id="pubPrice" placeholder="0.00" type="number" step="0.01" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">📞 联系方式</label>
-        <input class="form-input" id="pubContact" placeholder="微信号或手机号" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">📄 描述</label>
-        <textarea class="form-input form-textarea" id="pubDesc" placeholder="描述好物情况"></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="publish()">添加</button>
-    </div>
-  </div>
+// ====== 工具 ======
+let $ = id => document.getElementById(id);
+let qs = s => document.querySelector(s);
+let toast = m => { let t=$('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); };
+let showLoading = () => $('loading').style.display='flex';
+let hideLoading = () => $('loading').style.display='none';
+let escHtml = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  <!-- ===== 个人中心 ===== -->
-  <div id="page-profile" class="page">
-    <div class="header">
-      <span class="header-title">我的</span>
-      <span></span>
-    </div>
-    <div id="profileContent"></div>
-  </div>
+function api(method, path, data, auth) {
+  let opts = {method,headers:{'Content-Type':'application/json'}};
+  if(auth&&TOKEN) opts.headers['Authorization']='Bearer '+TOKEN;
+  let url = API+path;
+  if(data&&method==='GET'){ url+='?'+new URLSearchParams(data); }
+  if(data&&method!=='GET') opts.body=JSON.stringify(data);
+  return fetch(url,opts).then(r=>r.json());
+}
 
-  <!-- ===== 底部导航 ===== -->
-  <div class="tabbar">
-    <div class="tab-item active" onclick="showPage('home')"><span class="tab-icon">🏠</span>首页</div>
-    <div class="tab-item" onclick="showPage('publish')"><span class="tab-icon">➕</span>添加</div>
-    <div class="tab-item" onclick="showPage('profile')"><span class="tab-icon">👤</span>我的</div>
-  </div>
+function go(page){ CUR_PAGE=page; render(); window.scrollTo(0,0); }
 
-  <!-- ===== 联系弹窗 ===== -->
-  <div class="modal" id="contactModal">
-    <div class="modal-content">
-      <div class="modal-title">📦 联系信息</div>
-      <div class="form-group"><label class="form-label">📅 日期</label><input class="form-input" id="conDate" type="date" /></div>
-      <div class="form-group"><label class="form-label">⏰ 时间</label><input class="form-input" id="conTime" type="time" /></div>
-      <div class="form-group"><label class="form-label">📍 地点</label><input class="form-input" id="conLoc" placeholder="如图书馆、食堂" /></div>
-      <div class="form-group"><label class="form-label">📞 手机号</label><input class="form-input" id="conPhone" placeholder="方便对方联系" type="tel" /></div>
-      <div style="background:#f8f8f8;border-radius:8px;padding:12px;margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;font-size:14px;"><span>心意</span><span id="conPrice" style="font-weight:700;"></span></div>
-      </div>
-      <button class="btn btn-primary" onclick="submitContact()">去联系</button>
-      <button class="btn btn-secondary" onclick="modal('contactModal',0)">取消</button>
-    </div>
-  </div>
+// ====== 渲染 ======
+function render(){
+  let p = CUR_PAGE;
+  let main = $('app');
+  if(p==='home') renderHome(main);
+  else if(p==='detail') renderDetail(main);
+  else if(p==='publish') renderPublish(main);
+  else if(p==='profile') renderProfile(main);
+  else if(p==='myitems') renderMyItems(main);
+  else if(p==='myorders') renderMyOrders(main);
+  else if(p==='orderdetail') renderOrderDetail(main);
+  else if(p==='favorites') renderFavorites(main);
+  else if(p==='seller') renderSeller(main);
+  else if(p==='admin') renderAdmin(main);
+  else renderHome(main);
+}
 
-  <!-- ===== 公告弹窗 ===== -->
-  <div class="modal" id="noticeModal">
-    <div class="modal-content">
-      <div class="modal-title">📢 公告</div>
-      <div id="noticeTitle" style="font-size:16px;font-weight:600;margin-bottom:8px;"></div>
-      <div id="noticeBody" class="notice-box"></div>
-      <button class="btn btn-primary" style="margin-top:16px" onclick="modal('noticeModal',0)">知道了</button>
-    </div>
-  </div>
+// ====== 首页 ======
+function renderHome(el){
+  PAGE_HOME = 1;
+  let html = `
+<div class="header"><span class="ht">校内好物圈</span><span class="hb" onclick="go('profile')">👤</span></div>
+<div class="search-bar"><div class="sw"><span class="si">🔍</span><input id="sInput" placeholder="搜索好物" onkeydown="if(event.key==='Enter')doSearch()"/></div><span class="sb" onclick="doSearch()">搜索</span></div>
+<div id="bannerArea" class="banner-area"></div>
+<div class="cats" id="cats"></div>
+<div class="sort-bar"><span class="sbtn active" onclick="setSort('time_desc')">最新</span><span class="sbtn" onclick="setSort('price_asc')">心意↑</span><span class="sbtn" onclick="setSort('price_desc')">心意↓</span></div>
+<div class="grid" id="itemGrid"></div>
+<div id="loadMore" class="load-more" onclick="loadMore()">加载更多</div>
+<div class="tabbar"><div class="tab active" onclick="go('home')">🏠<span>首页</span></div><div class="tab" onclick="go('publish')">➕<span>添加</span></div><div class="tab" onclick="go('profile')">👤<span>我的</span></div></div>`;
+  el.innerHTML = html;
+  loadBanners();
+  initCats();
+  loadItems();
+}
 
-  <script src="app.js"></script>
+function loadBanners(){
+  $('bannerArea').innerHTML = '<div class="banners"><div class="banner">📢 广告位招租</div><div class="banner">📢 广告位招租</div><div class="banner">📢 广告位招租</div></div>';
+}
+
+function initCats(){
+  let c = $('cats'); c.innerHTML = '';
+  COLS.forEach((v,i)=>{
+    let sp = document.createElement('span');
+    sp.className='cat'+(i===0?' active':'');
+    sp.innerHTML = COLS_ICON[i]+' '+v;
+    sp.onclick = function(){
+      c.querySelectorAll('.cat').forEach(e=>e.classList.remove('active'));
+      this.classList.add('active');
+      CAT = v==='全部'?'':v;
+      PAGE_HOME=1; loadItems();
+    };
+    c.appendChild(sp);
+  });
+}
+
+function setSort(s){ SORT=s; document.querySelectorAll('.sbtn').forEach(e=>e.classList.remove('active')); event.target.classList.add('active'); PAGE_HOME=1; loadItems(); }
+function doSearch(){ KEYWORD=$('sInput').value; PAGE_HOME=1; loadItems(); }
+
+function loadItems(){
+  if(LOADING) return; LOADING=true;
+  $('loadMore').textContent='加载中...';
+  api('GET','/api/items',{page:PAGE_HOME,category:CAT,keyword:KEYWORD,sort:SORT}).then(r=>{
+    LOADING=false;
+    if(r.code!==0) return;
+    let grid = $('itemGrid');
+    if(PAGE_HOME===1) grid.innerHTML='';
+    let list = r.data.list||[];
+    list.forEach(item=>{
+      let img = item.images&&item.images[0]?API+escHtml(item.images[0]):'';
+      let div = document.createElement('div'); div.className='card-i';
+      div.innerHTML = '<img class="ci-img" src="'+img+'" onerror="this.style.display=\'none\'"><div class="ci-body"><div class="ci-title">'+escHtml(item.title)+'</div><div class="ci-price">🍞'+Number(item.price).toFixed(2)+'</div><div class="ci-meta">'+escHtml(item.category)+'</div></div>';
+      div.onclick = ()=>{ CUR_ITEM=item; go('detail'); };
+      grid.appendChild(div);
+    });
+    HAS_MORE = r.data.page < r.data.totalPages;
+    if(PAGE_HOME===1&&list.length===0) grid.innerHTML='<div class="empty">暂无好物</div>';
+    if(HAS_MORE) PAGE_HOME++;
+    $('loadMore').style.display = HAS_MORE?'block':'none';
+    $('loadMore').textContent = HAS_MORE?'加载更多':'';
+  });
+}
+function loadMore(){ if(HAS_MORE) loadItems(); }
+
+// ====== 详情 ======
+function renderDetail(el){
+  let item = CUR_ITEM;
+  if(!item){ go('home'); return; }
+  el.innerHTML = '<div class="header"><span class="hb" onclick="go(\'home\')">← 返回</span><span class="ht">详情</span><span></span></div><div id="dContent"><div class="loading" style="padding:60px;text-align:center;color:#999">加载中...</div></div><div class="tabbar"><div class="tab" onclick="go(\'home\')">🏠<span>首页</span></div><div class="tab" onclick="go(\'publish\')">➕<span>添加</span></div><div class="tab" onclick="go(\'profile\')">👤<span>我的</span></div></div>';
+  
+  api('GET','/api/items/'+item.id).then(r=>{
+    if(r.code!==0||!r.data){ $('dContent').innerHTML='<div class="empty">加载失败</div>'; return; }
+    let d = r.data; CUR_ITEM = d;
+    let img = d.images&&d.images[0]?'<img class="detail-img" src="'+API+escHtml(d.images[0])+'" onerror="this.style.display=\'none\'">':'';
+    let contact = d.contact?'<div style="font-size:13px;color:#07c160;margin-top:4px">📞 '+escHtml(d.contact)+'</div>':'';
+    
+    $('dContent').innerHTML = `
+${img}
+<div class="card"><div style="font-size:18px;font-weight:700">${escHtml(d.title)}</div><div style="font-size:24px;color:#f60;font-weight:800;margin:8px 0">🍞${Number(d.price).toFixed(2)}</div><div><span style="font-size:12px;color:#07c160;background:#e8f5e9;padding:2px 10px;border-radius:10px">${escHtml(d.category)}</span></div></div>
+<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:8px">📝 描述</div><div style="font-size:14px;color:#555;line-height:1.8">${escHtml(d.description)||'暂无'}</div></div>
+<div class="card"><div class="seller-row" onclick="goToSeller(\'${d.sellerId}\')"><div class="avatar-sm">${(d.sellerName||'?')[0]}</div><div><div style="font-size:15px;font-weight:600">${escHtml(d.sellerName)}</div>${contact}</div></div></div>
+<div class="card"><div id="commentsWrap"><div style="text-align:center;color:#bbb;padding:12px;font-size:13px">加载评论...</div></div>
+<div style="display:flex;gap:8px;margin-top:12px"><input id="cInput" placeholder="写评论..." style="flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:20px;padding:8px 14px;font-size:13px;outline:none"/><span style="background:linear-gradient(135deg,#07c160,#05a34e);color:#fff;border-radius:20px;padding:8px 16px;font-size:13px;cursor:pointer" onclick="postComment()">发送</span></div></div>
+<div class="detail-bottom"><span style="font-size:22px;color:#f60;font-weight:800">🍞${Number(d.price).toFixed(2)}</span><span class="btn btn-primary btn-sm" onclick="openContact()">联系对方</span></div>`;
+    
+    // 加载评论
+    api('GET','/api/comments/'+d.id).then(r2=>{
+      let cw = $('commentsWrap');
+      if(r2.code===0&&r2.data&&r2.data.list){
+        let ch = r2.data.list.map(c=>`<div class="comment"><div class="ch"><span class="cn">${escHtml(c.userName)}</span><span class="ct">${c.createdAt||''}</span></div><div class="cc">${escHtml(c.content)}</div></div>`).join('');
+        cw.innerHTML = ch||'<div style="text-align:center;color:#bbb;padding:12px;font-size:13px">暂无评论</div>';
+      }
+    });
+  });
+}
+
+function postComment(){
+  let text = $('cInput').value.trim();
+  if(!text){toast('请输入评论');return;}
+  if(!TOKEN){go('profile');return;}
+  api('POST','/api/comments/'+CUR_ITEM.id,{content:text},1).then(r=>{
+    if(r.code===0){ $('cInput').value=''; loadDetailContent(); toast('评论成功'); }
+    else toast(r.message||'失败');
+  });
+}
+
+function loadDetailContent(){ renderDetail($('app')); }
+
+function goToSeller(id){
+  if(id){ CUR_SELLER_ID=id; go('seller'); }
+}
+
+// ====== 联系 ======
+function openContact(){
+  $('app').innerHTML = `
+<div class="modal-mask" onclick="go('detail')"><div class="modal-content" onclick="event.stopPropagation()">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">📦 联系信息</div>
+<div class="fg"><label>📅 日期</label><input class="fi" id="conD" type="date"/></div>
+<div class="fg"><label>⏰ 时间</label><input class="fi" id="conT" type="time"/></div>
+<div class="fg"><label>📍 地点</label><input class="fi" id="conL" placeholder="如图书馆、食堂"/></div>
+<div class="fg"><label>📞 手机号</label><input class="fi" id="conP" placeholder="方便对方联系" type="tel"/></div>
+<div style="background:#f8f8f8;border-radius:8px;padding:12px;margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:14px"><span>心意</span><span style="font-weight:700">🍞${Number(CUR_ITEM.price).toFixed(2)}</span></div></div>
+<span class="btn btn-primary" onclick="submitContact()">去联系</span>
+<span class="btn btn-secondary" style="margin-top:8px" onclick="go('detail')">取消</span>
+</div></div>`;
+}
+
+function submitContact(){
+  let d=$('conD').value, t=$('conT').value, l=$('conL').value, p=$('conP').value;
+  if(!d||!t){toast('请选择时间');return;}
+  if(!TOKEN){go('profile');return;}
+  api('POST','/api/orders',{itemId:CUR_ITEM.id,pickupTime:d+' '+t,pickupLocation:l,contactPhone:p},1).then(r=>{
+    if(r.code===0){ let c=r.data&&r.data.itemContact; toast(c?'对方: '+c:'已通知对方'); go('detail'); }
+    else toast(r.message||'失败');
+  });
+}
+
+// ====== 发布 ======
+function renderPublish(el){
+  if(!TOKEN){ go('profile'); return; }
+  el.innerHTML = `
+<div class="header"><span class="ht">添加好物</span><span></span></div>
+<div class="card" style="margin-top:4px">
+<div class="fg"><label>📝 标题</label><input class="fi" id="pT" placeholder="输入标题"/></div>
+<div class="fg"><label>🏷️ 分类</label><select class="fi" id="pC">${COLS.slice(1).map(c=>'<option>'+c+'</option>').join('')}</select></div>
+<div class="fg"><label>🍞 心意</label><input class="fi" id="pP" placeholder="0.00" type="number" step="0.01"/></div>
+<div class="fg"><label>📞 联系方式</label><input class="fi" id="pCo" placeholder="微信号或手机号"/></div>
+<div class="fg"><label>📄 描述</label><textarea class="fi" id="pD" rows="3" placeholder="描述好物情况"></textarea></div>
+<span class="btn btn-primary" onclick="doPublish()">添加</span>
+</div>
+<div class="tabbar"><div class="tab" onclick="go('home')">🏠<span>首页</span></div><div class="tab active" onclick="go('publish')">➕<span>添加</span></div><div class="tab" onclick="go('profile')">👤<span>我的</span></div></div>`;
+}
+
+function doPublish(){
+  let t=$('pT').value.trim(), c=$('pC').value, p=parseFloat($('pP').value), co=$('pCo').value.trim(), d=$('pD').value.trim();
+  if(!t){toast('请输入标题');return;}
+  if(!p||p<=0){toast('请输入心意');return;}
+  showLoading();
+  api('POST','/api/items',{title:t,category:c,price:p,contact:co,description:d},1).then(r=>{
+    hideLoading();
+    if(r.code===0){toast('添加成功！');go('home');}
+    else toast(r.message||'失败');
+  });
+}
+
+// ====== 个人中心 ======
+function renderProfile(el){
+  if(!TOKEN){
+    el.innerHTML = `<div class="header"><span class="ht">我的</span><span></span></div><div class="card" style="text-align:center;padding:40px"><div style="font-size:16px;margin-bottom:16px">请先登录</div><span class="btn btn-primary" onclick="showLogin()" style="max-width:200px;margin:0 auto">登录</span></div><div class="tabbar"><div class="tab" onclick="go('home')">🏠<span>首页</span></div><div class="tab" onclick="go('publish')">➕<span>添加</span></div><div class="tab active" onclick="go('profile')">👤<span>我的</span></div></div>`;
+    return;
+  }
+  el.innerHTML = `
+<div class="header"><span class="ht">我的</span><span></span></div>
+<div class="card" style="text-align:center;padding:24px"><div class="avatar" style="margin:0 auto 12px">${(USER.nickname||'?')[0]}</div><div style="font-size:18px;font-weight:600">${escHtml(USER.nickname)}</div></div>
+<div class="card"><div class="mi" onclick="go('myitems')"><div class="mi-icon" style="background:#e8f5e9">📦</div><div class="mi-text">我的好物</div><span>›</span></div><div class="mi" onclick="go('myorders')"><div class="mi-icon" style="background:#fff7e6">📋</div><div class="mi-text">我的记录</div><span>›</span></div><div class="mi" onclick="go('favorites')"><div class="mi-icon" style="background:#fce4ec">❤️</div><div class="mi-text">我的收藏</div><span>›</span></div></div>
+<div class="card"><div class="mi" onclick="showNotice()"><div class="mi-icon" style="background:#e3f2fd">📢</div><div class="mi-text">公告</div><span>›</span></div></div>
+<div class="card"><div class="mi" onclick="logout()"><div class="mi-icon" style="background:#fff0f0">🚪</div><div class="mi-text" style="color:#ff4d4f">退出登录</div></div></div>
+<div class="tabbar"><div class="tab" onclick="go('home')">🏠<span>首页</span></div><div class="tab" onclick="go('publish')">➕<span>添加</span></div><div class="tab active" onclick="go('profile')">👤<span>我的</span></div></div>`;
+  // 检查管理员
+  api('GET','/api/announcements/latest').then(()=>{}); // just test
+}
+
+function showLogin(){
+  $('app').innerHTML = `
+<div class="header"><span class="ht">登录</span><span></span></div>
+<div class="card" style="margin-top:40px"><div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">登录</div>
+<div class="fg"><label>用户名</label><input class="fi" id="lU" placeholder="请输入用户名"/></div>
+<div class="fg"><label>密码</label><input class="fi" id="lP" type="password" placeholder="请输入密码" onkeydown="if(event.key==='Enter')login()"/></div>
+<span class="btn btn-primary" onclick="login()">登录</span>
+<div style="text-align:center;margin-top:12px;font-size:13px;color:#666">还没有账号？<a href="javascript:showRegister()" style="color:#07c160">注册</a></div></div>`;
+}
+
+function showRegister(){
+  $('app').innerHTML = `
+<div class="header"><span class="ht">注册</span><span></span></div>
+<div class="card" style="margin-top:40px"><div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">注册</div>
+<div class="fg"><label>用户名</label><input class="fi" id="rU" placeholder="设置用户名"/></div>
+<div class="fg"><label>密码</label><input class="fi" id="rP" type="password" placeholder="设置密码"/></div>
+<div class="fg"><label>确认密码</label><input class="fi" id="rP2" type="password" placeholder="确认密码"/></div>
+<span class="btn btn-primary" onclick="register()">注册</span>
+<div style="text-align:center;margin-top:12px;font-size:13px;color:#666">已有账号？<a href="javascript:showLogin()" style="color:#07c160">登录</a></div></div>`;
+}
+
+function login(){
+  let u=$('lU').value.trim(), p=$('lP').value;
+  if(!u||!p){toast('请输入用户名和密码');return;}
+  showLoading();
+  api('POST','/api/auth/login-password',{username:u,password:p}).then(r=>{
+    hideLoading();
+    if(r.code===0){
+      TOKEN=r.data.token; USER=r.data.user;
+      localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
+      toast('登录成功'); go('home');
+    } else toast(r.message||'登录失败');
+  });
+}
+
+function register(){
+  let u=$('rU').value.trim(), p=$('rP').value, p2=$('rP2').value;
+  if(!u){toast('请输入用户名');return;}
+  if(p.length<3){toast('密码至少3位');return;}
+  if(p!==p2){toast('两次密码不一致');return;}
+  showLoading();
+  api('POST','/api/auth/register',{username:u,password:p}).then(r=>{
+    hideLoading();
+    if(r.code===0){
+      TOKEN=r.data.token; USER=r.data.user;
+      localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
+      toast('注册成功'); go('home');
+    } else toast(r.message||'注册失败');
+  });
+}
+
+function logout(){
+  if(confirm('确定退出？')){localStorage.clear();TOKEN='';USER={};toast('已退出');go('home');}
+}
+
+// ====== 我的好物 ======
+function renderMyItems(el){
+  el.innerHTML = `<div class="header"><span class="hb" onclick="go('profile')">← 返回</span><span class="ht">我的好物</span><span></span></div><div id="miList"></div>`;
+  api('GET','/api/items/my',{token:TOKEN},1).then(r=>{
+    if(r.code!==0) return;
+    let list = r.data.list||[];
+    let html = list.map(item=>`<div class="list-item"><div class="list-item-body"><div class="list-item-title">${escHtml(item.title)}</div><div class="list-item-price">🍞${Number(item.price).toFixed(2)}</div><div class="list-item-status">${item.status}</div></div></div>`).join('');
+    $('miList').innerHTML = html||'<div class="empty">暂无好物</div>';
+  });
+}
+
+// ====== 我的记录 ======
+function renderMyOrders(el){
+  el.innerHTML = `<div class="header"><span class="hb" onclick="go('profile')">← 返回</span><span class="ht">我的记录</span><span></span></div><div id="moList"></div>`;
+  Promise.all([api('GET','/api/orders/my',{token:TOKEN},1), api('GET','/api/orders/sold',{token:TOKEN},1)]).then(([buy,sell])=>{
+    let list = (buy.data&&buy.data.list||[]).concat(sell.data&&sell.data.list||[]);
+    let html = list.map(o=>`<div class="list-item" style="cursor:pointer" onclick="showOrder('${o._id||o.id}')"><div class="list-item-body"><div class="list-item-title">${escHtml(o.itemTitle)}</div><div class="list-item-price">🍞${Number(o.itemPrice||o.totalPrice).toFixed(2)}</div><div class="list-item-status">${o.status}</div></div></div>`).join('');
+    $('moList').innerHTML = html||'<div class="empty">暂无记录</div>';
+  });
+}
+
+function showOrder(id){ CUR_ORDER_ID=id; go('orderdetail'); }
+
+// ====== 订单详情 ======
+let CUR_ORDER_ID = null;
+function renderOrderDetail(el){
+  el.innerHTML = `<div class="header"><span class="hb" onclick="go('myorders')">← 返回</span><span class="ht">记录详情</span><span></span></div><div class="loading" style="padding:40px;text-align:center;color:#999">加载中...</div>`;
+  // 暂简化为查找订单
+  toast('订单功能请在微信小程序中使用');
+  go('profile');
+}
+
+// ====== 收藏 ======
+function renderFavorites(el){
+  el.innerHTML = `<div class="header"><span class="hb" onclick="go('profile')">← 返回</span><span class="ht">我的收藏</span><span></span></div><div id="favList"></div>`;
+  api('GET','/api/favorites/my',{token:TOKEN},1).then(r=>{
+    if(r.code!==0) return;
+    let list = r.data&&r.data.list||[];
+    let html = list.map(item=>`<div class="list-item" style="cursor:pointer" onclick="CUR_ITEM={id:'${item._id||item.id}'};go('detail')"><div class="list-item-body"><div class="list-item-title">${escHtml(item.title)}</div><div class="list-item-price">🍞${Number(item.price).toFixed(2)}</div></div></div>`).join('');
+    $('favList').innerHTML = html||'<div class="empty">暂无收藏</div>';
+  });
+}
+
+// ====== 卖家主页 ======
+let CUR_SELLER_ID = null;
+function renderSeller(el){
+  el.innerHTML = `<div class="header"><span class="hb" onclick="go('detail')">← 返回</span><span class="ht">卖家主页</span><span></span></div><div class="loading" style="padding:40px;text-align:center;color:#999">加载中...</div>`;
+  if(!CUR_SELLER_ID){ go('home'); return; }
+  api('GET','/api/ratings/seller/'+CUR_SELLER_ID+'/info').then(r=>{
+    if(r.code!==0||!r.data) return;
+    let d = r.data, u = d.user||{}, rating = d.ratingCount||0, avg = d.avgScore||0;
+    let full = Math.floor(avg), empty = 5-full;
+    let stars = '★'.repeat(full)+'☆'.repeat(empty);
+    let items = (d.items||[]).map(i=>`<div class="card-i" style="width:calc(50%-4px)" onclick="CUR_ITEM={id:'${i._id||i.id}'};go('detail')"><div class="ci-body"><div class="ci-title">${escHtml(i.title)}</div><div class="ci-price">🍞${Number(i.price).toFixed(2)}</div></div></div>`).join('');
+    el.innerHTML = `
+<div class="header"><span class="hb" onclick="go('detail')">← 返回</span><span class="ht">卖家主页</span><span></span></div>
+<div style="background:linear-gradient(135deg,#07c160,#05a34e);padding:40px 0 30px;text-align:center;color:#fff"><div class="avatar" style="margin:0 auto 12px;width:64px;height:64px;font-size:28px;background:rgba(255,255,255,0.2)">${(u.nickname||'?')[0]}</div><div style="font-size:20px;font-weight:700">${escHtml(u.nickname)}</div><div style="margin-top:8px;font-size:24px;color:#ffc107">${stars}</div><div style="font-size:13px;margin-top:4px;opacity:0.8">${rating}条评价 · ${avg}分</div></div>
+<div style="padding:16px 16px 8px;font-size:16px;font-weight:600">在售好物 (${items.length})</div>
+<div class="grid" style="padding:0 8px">${items||'<div class="empty" style="grid-column:1/3">暂无</div>'}</div>`;
+  });
+}
+
+// ====== 公告 ======
+function showNotice(){
+  showLoading();
+  api('GET','/api/announcements/latest').then(r=>{
+    hideLoading();
+    if(r.code===0&&r.data){
+      $('app').innerHTML = `<div class="modal-mask" onclick="go('profile')"><div class="modal-content" onclick="event.stopPropagation()"><div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">📢 公告</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">${escHtml(r.data.title)}</div><div style="font-size:14px;line-height:1.8;color:#555;white-space:pre-wrap;background:#e8f5e9;border-radius:8px;padding:16px">${escHtml(r.data.content)}</div><span class="btn btn-primary" style="margin-top:16px" onclick="go('profile')">知道了</span></div></div>`;
+    } else toast('暂无公告');
+  });
+}
+
+// ====== 管理员 ======
+function renderAdmin(el){ toast('管理员功能请在微信小程序中使用'); go('profile'); }
+
+// ====== 初始化 ======
+function init(){
+  if(!TOKEN){ showLogin(); } else { go('home'); }
+}
+
+// 事件监听
+window.onload = init;
+</script>
 </body>
 </html>

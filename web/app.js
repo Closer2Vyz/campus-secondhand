@@ -1,279 +1,171 @@
-// API 地址（部署时改为 Railway 域名）
-const API = 'https://campus-secondhand-production-023e.up.railway.app';
-let TOKEN = localStorage.getItem('token') || '';
-let USER = JSON.parse(localStorage.getItem('user') || '{}');
-let CURRENT_ITEM = null;
-let CURRENT_PAGE = 1;
-let CURRENT_SORT = 'time_desc';
-let CURRENT_CAT = '';
-let CURRENT_KEYWORD = '';
+const API = '';
+let T = localStorage.getItem('token') || '';
+let U = JSON.parse(localStorage.getItem('user') || '{}');
+let CI = null, CP = 1, CS = 'time_desc', CC = '', CK = '', CUID = null;
 
-function $(id) { return document.getElementById(id); }
-function toast(msg) { var t=$('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); }
-function showPage(name) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); var el=$('page-'+name); if(el) el.classList.add('active'); document.querySelectorAll('.tab-item').forEach((t,i)=>{ t.classList.toggle('active', (name==='home'&&i===0)||(name==='publish'&&i===1)||(name==='profile'&&i===2)); }); }
-function modal(id, show) { var m=$(id); if(m) m.classList.toggle('active', show); }
-function el(tag, attrs, children) { var e=document.createElement(tag); if(attrs) for(var k in attrs) e[k]=attrs[k]; if(children) e.innerHTML=children; return e; }
+const $ = id => document.getElementById(id);
+const toast = m => { const t=$('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); };
+const showPage = n => { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); const e=$(n); if(e) e.classList.add('active'); document.querySelectorAll('.tab-item').forEach((t,i)=>{t.classList.toggle('active',(n==='home'&&i===0)||(n==='publish'&&i===1)||(n==='profile'&&i===2));}); };
+const modal = (id,show) => { const m=$(id); if(m) m.classList.toggle('active',show); };
+const api = (method,path,data,auth) => fetch(API+path, {method,headers:{'Content-Type':'application/json',...(auth&&T?{Authorization:'Bearer '+T}:{})},body:data&&method!=='GET'?JSON.stringify(data):undefined}).then(r=>r.json());
+const apiGet = (path,auth) => api('GET',path,null,auth);
+const apiPost = (path,data,auth) => api('POST',path,data,auth);
 
-function api(method, path, data, auth) {
-  var opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (data && method!=='GET') opts.body = JSON.stringify(data);
-  if (auth && TOKEN) opts.headers['Authorization'] = 'Bearer ' + TOKEN;
-  var url = API + path;
-  if (data && method==='GET') url += '?' + new URLSearchParams(data);
-  return fetch(url, opts).then(r=>r.json());
+// ===== 登录注册 =====
+function showLogin() {
+  $('home-content').style.display='none';
+  $('login-area').innerHTML='<div class="card"><div class="card-title" style="text-align:center">登录</div><div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="loginU"></div><div class="form-group"><label class="form-label">密码</label><input class="form-input" id="loginP" type="password"></div><button class="btn btn-primary" onclick="login()">登录</button><div style="text-align:center;margin-top:10px;font-size:13px;color:#666">没有账号？<a href="javascript:showReg()" style="color:#07c160">注册</a></div></div>';
 }
-
-// ===== 账号系统 =====
-var ACCOUNTS_KEY = 'web_accounts';
-
-function getAccounts() {
-  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || {}; } catch(e) { return {}; }
+function showReg() {
+  $('login-area').innerHTML='<div class="card"><div class="card-title" style="text-align:center">注册</div><div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="regU"></div><div class="form-group"><label class="form-label">密码</label><input class="form-input" id="regP" type="password"></div><div class="form-group"><label class="form-label">确认密码</label><input class="form-input" id="regP2" type="password"></div><button class="btn btn-primary" onclick="reg()">注册</button><div style="text-align:center;margin-top:10px;font-size:13px;color:#666">已有账号？<a href="javascript:showLogin()" style="color:#07c160">登录</a></div></div>';
 }
-function saveAccount(user, pass) {
-  var acc = getAccounts();
-  acc[user] = pass;
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc));
+function reg() {
+  const u=$('regU').value.trim(),p=$('regP').value,p2=$('regP2').value;
+  if(!u||p.length<3||p!==p2){toast('检查输入');return;}
+  apiPost('/api/auth/register',{username:u,password:p}).then(r=>{if(r.code===0){T=r.data.token;U=r.data.user;localStorage.setItem('token',T);localStorage.setItem('user',JSON.stringify(U));$('home-content').style.display='';$('login-area').innerHTML='';showPage('home');loadItems();loadProfile();toast('注册成功');}else toast(r.message);});
 }
-
-function doLogin() {
-  if (TOKEN) { showPage('profile'); loadProfile(); return; }
-  $('loginNotice').innerHTML = '\
-<div class="card" style="margin-top:8px">\
-  <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">登录</div>\
-  <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="loginUser" placeholder="请输入用户名" /></div>\
-  <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="loginPass" type="password" placeholder="请输入密码" /></div>\
-  <button class="btn btn-primary" onclick="loginAccount()">登录</button>\
-  <div style="text-align:center;margin-top:12px;font-size:13px;color:#666">还没有账号？<a href="javascript:showRegister()" style="color:#07c160">注册</a></div>\
-</div>';
-}
-
-function showRegister() {
-  $('loginNotice').innerHTML = '\
-<div class="card" style="margin-top:8px">\
-  <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">注册</div>\
-  <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="regUser" placeholder="设置用户名" /></div>\
-  <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="regPass" type="password" placeholder="设置密码" /></div>\
-  <div class="form-group"><label class="form-label">确认密码</label><input class="form-input" id="regPass2" type="password" placeholder="再次输入密码" /></div>\
-  <button class="btn btn-primary" onclick="registerAccount()">注册</button>\
-  <div style="text-align:center;margin-top:12px;font-size:13px;color:#666">已有账号？<a href="javascript:doLogin()" style="color:#07c160">登录</a></div>\
-</div>';
-}
-
-function registerAccount() {
-  var u = $('regUser').value.trim(), p = $('regPass').value, p2 = $('regPass2').value;
-  if (!u) { toast('请输入用户名'); return; }
-  if (p.length < 3) { toast('密码至少3位'); return; }
-  if (p !== p2) { toast('两次密码不一致'); return; }
-  var acc = getAccounts();
-  if (acc[u]) { toast('用户名已存在'); return; }
-  saveAccount(u, p);
-  api('POST','/api/auth/register',{username:u,password:p}).then(r=>{
-    if(r.code===0){
-      TOKEN=r.data.token; USER=r.data.user; USER.username=u;
-      localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
-      toast('注册成功'); showPage('home'); loadItems(); loadProfile(); $('loginNotice').innerHTML='';
-    } else toast(r.message||'注册失败');
-  });
-}
-
-function loginAccount() {
-  var u = $('loginUser').value.trim(), p = $('loginPass').value;
-  if (!u || !p) { toast('请输入用户名和密码'); return; }
-  var acc = getAccounts();
-  if (acc[u] !== p) { toast('用户名或密码错误'); return; }
-  api('POST','/api/auth/login-password',{username:u,password:p}).then(r=>{
-    if(r.code===0){
-      TOKEN=r.data.token; USER=r.data.user; USER.username=u;
-      localStorage.setItem('token',TOKEN); localStorage.setItem('user',JSON.stringify(USER));
-      toast('登录成功'); showPage('home'); loadItems(); loadProfile(); $('loginNotice').innerHTML='';
-    } else toast(r.message||'登录失败');
-  });
+function login() {
+  const u=$('loginU').value.trim(),p=$('loginP').value;
+  if(!u||!p){toast('输入用户名和密码');return;}
+  apiPost('/api/auth/login-password',{username:u,password:p}).then(r=>{if(r.code===0){T=r.data.token;U=r.data.user;localStorage.setItem('token',T);localStorage.setItem('user',JSON.stringify(U));$('home-content').style.display='';$('login-area').innerHTML='';showPage('home');loadItems();loadProfile();toast('登录成功');}else toast(r.message);});
 }
 
 // ===== 首页 =====
 function initHome() {
-  var cats = ['全部','教材','数码','生活','体育','其他','虚拟物品'];
-  var catIcons = ['🛍️','📚','📱','🧥','⚽','🎲','💻'];
-  var elCats = $('cats');
-  cats.forEach((c,i)=>{
-    var sp = document.createElement('span');
-    sp.className = 'cat' + (i===0?' active':'');
-    sp.textContent = catIcons[i] + ' ' + c;
-    sp.onclick = function(){
-      elCats.querySelectorAll('.cat').forEach(e=>e.classList.remove('active'));
-      this.classList.add('active');
-      CURRENT_CAT = c==='全部'?'':c;
-      CURRENT_PAGE = 1;
-      loadItems();
-    };
-    elCats.appendChild(sp);
-  });
-
-  // 搜索
-  $('searchInput').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
-  $('searchBtn').onclick = doSearch;
-
-  // 无限滚动
-  var list = $('itemList');
-  window.addEventListener('scroll', function(){
-    if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
-      if ($('loadMore').style.display !== 'none') loadMore();
-    }
-  });
+  const cats=['全部','教材','数码','生活','体育','其他','虚拟物品'],icons=['🛍️','📚','📱','🧥','⚽','🎲','💻'];
+  const el=$('cats');
+  cats.forEach((c,i)=>{const s=document.createElement('span');s.className='cat'+(i===0?' active':'');s.innerHTML=icons[i]+' '+c;s.onclick=function(){el.querySelectorAll('.cat').forEach(e=>e.classList.remove('active'));this.classList.add('active');CC=c==='全部'?'':c;CP=1;loadItems();};el.appendChild(s);});
+  $('searchBtn').onclick=()=>{CK=$('searchInput').value;CP=1;loadItems();};
+  $('searchInput').onkeydown=e=>{if(e.key==='Enter')$('searchBtn').click()};
+  loadItems();loadBanners();loadNotice();
 }
-
-function doSearch() { CURRENT_KEYWORD = $('searchInput').value; CURRENT_PAGE = 1; loadItems(); }
-
-function setSort(s) {
-  CURRENT_SORT = s;
-  document.querySelectorAll('.sort-btn').forEach(e=>e.classList.remove('active'));
-  event.target.classList.add('active');
-  CURRENT_PAGE = 1;
-  loadItems();
+function loadBanners() {
+  $('banner-area').innerHTML='<div class="banner"><div class="banner-item">📢 广告位</div><div class="banner-item banner-item-2">📢 广告位</div><div class="banner-item banner-item-3">📢 广告位</div></div>';
 }
-
+function setSort(s){CS=s;document.querySelectorAll('.sort-btn').forEach(e=>e.classList.remove('active'));event.target.classList.add('active');CP=1;loadItems();}
 function loadItems() {
-  $('loadMore').style.display = 'none';
-  if (CURRENT_PAGE === 1) $('itemList').innerHTML = '<div class="loading">加载中...</div>';
-  api('GET','/api/items',{page:CURRENT_PAGE,category:CURRENT_CAT,keyword:CURRENT_KEYWORD,sort:CURRENT_SORT}).then(r=>{
-    if(r.code!==0) return;
-    var list = r.data.list;
-    if (CURRENT_PAGE === 1) $('itemList').innerHTML = '';
-    if (!list || list.length===0) { if(CURRENT_PAGE===1) $('itemList').innerHTML='<div class="empty">暂无好物</div>'; return; }
-    list.forEach(function(item){
-      var img = item.images && item.images[0] ? API+item.images[0] : '';
-      var card = document.createElement('div'); card.className='card-item';
-      card.innerHTML = '<img class="card-item-img" src="'+img+'" onerror="this.style.display=\'none\'"><div class="card-item-body"><div class="card-item-title">'+item.title+'</div><div class="card-item-price">🍞'+Number(item.price).toFixed(2)+'</div><div class="card-item-meta">'+item.category+'</div></div>';
-      card.onclick = function(){ loadDetail(item.id); };
-      $('itemList').appendChild(card);
+  if(CP===1)$('item-grid').innerHTML='<div class="loading">加载中...</div>';
+  apiGet('/api/items?'+new URLSearchParams({page:CP,category:CC,keyword:CK,sort:CS})).then(r=>{
+    if(r.code!==0)return;
+    if(CP===1)$('item-grid').innerHTML='';
+    const list=r.data.list||[];
+    if(list.length===0&&CP===1){$('item-grid').innerHTML='<div class="empty">暂无好物</div>';return;}
+    list.forEach(item=>{
+      const d=document.createElement('div');d.className='item-card';
+      d.innerHTML='<img class="item-img" src="'+(item.images&&item.images[0]?API+item.images[0]:'')+'" onerror="this.style.display=\'none\'"><div class="item-body"><div class="item-title">'+item.title+'</div><div class="item-price">🍞'+Number(item.price).toFixed(2)+'</div><div class="item-meta">'+item.category+'</div></div>';
+      d.onclick=()=>loadDetail(item.id);
+      $('item-grid').appendChild(d);
     });
-    if (r.data.page < r.data.totalPages) { CURRENT_PAGE++; $('loadMore').style.display='block'; }
+    if(r.data.page<r.data.totalPages){CP++;$('load-more').style.display='block';}else $('load-more').style.display='none';
   });
 }
-function loadMore() { $('loadMore').textContent='加载中...'; loadItems(); }
 
 // ===== 详情 =====
 function loadDetail(id) {
-  showPage('detail');
-  $('detailContent').innerHTML = '<div class="loading">加载中...</div>';
-  api('GET','/api/items/'+id).then(r=>{
-    if(r.code!==0||!r.data){ $('detailContent').innerHTML='<div class="empty">加载失败</div>'; return; }
-    var item=r.data; CURRENT_ITEM=item;
-    var imgs = item.images&&item.images.length>0 ? '<img class="detail-img" src="'+API+item.images[0]+'">' : '';
-    var contact = item.contact ? '<div class="seller-contact">📞 '+item.contact+'</div>' : '';
-    var html = imgs;
-    html += '<div class="card"><div style="font-size:18px;font-weight:700">'+item.title+'</div><div style="font-size:24px;color:#f60;font-weight:800;margin:8px 0">🍞'+Number(item.price).toFixed(2)+'</div><div><span style="font-size:12px;color:#07c160;background:#e8f5e9;padding:2px 10px;border-radius:10px">'+item.category+'</span></div></div>';
-    html += '<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:8px">📝 描述</div><div style="font-size:14px;color:#555;line-height:1.8">'+(item.description||'暂无')+'</div></div>';
-    html += '<div class="card"><div class="seller-row"><div class="avatar avatar-sm">'+(item.sellerName?item.sellerName[0]:'?')+'</div><div class="seller-info"><div class="seller-name">'+item.sellerName+'</div>'+contact+'</div></div></div>';
-    
-    // 评论
-    html += '<div class="card"><div class="card-title">💬 评论</div><div id="commentsWrap"></div></div>';
-    
-    $('detailContent').innerHTML = html;
-    $('detailBottom').innerHTML = '<div class="price">🍞'+Number(item.price).toFixed(2)+'</div><button class="btn btn-primary btn-small" onclick="openContact()">联系对方</button>';
-    $('detailBottom').style.display = 'flex';
-
-    // 加载评论
-    if (item.id) {
-      api('GET','/api/comments/'+item.id).then(r2=>{
-        var cw = $('commentsWrap');
-        if(r2.code===0&&r2.data&&r2.data.list){
-          var ch = '';
-          r2.data.list.forEach(function(c){ ch+='<div class="comment"><div class="comment-header"><span class="comment-name">'+c.userName+'</span><span class="comment-time">'+c.createdAt+'</span></div><div class="comment-text">'+c.content+'</div></div>'; });
-          cw.innerHTML = ch || '<div style="text-align:center;color:#bbb;padding:12px;font-size:13px">暂无评论</div>';
-        }
-      });
-    }
+  showPage('detail');$('detail-content').innerHTML='<div class="loading">加载中...</div>';
+  apiGet('/api/items/'+id).then(r=>{
+    if(r.code!==0||!r.data){$('detail-content').innerHTML='<div class="empty">加载失败</div>';return;}
+    CI=r.data;const i=r.data;
+    let h='';
+    if(i.images&&i.images[0])h+='<img class="detail-img" src="'+API+i.images[0]+'">';
+    h+='<div class="card"><div style="font-size:17px;font-weight:700">'+i.title+'</div><div style="font-size:22px;color:#f60;font-weight:800;margin:6px 0">🍞'+Number(i.price).toFixed(2)+'</div><div><span style="font-size:12px;color:#07c160;background:#e8f5e9;padding:2px 10px;border-radius:10px">'+i.category+'</span></div></div>';
+    h+='<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:6px">📝描述</div><div style="font-size:13px;color:#555;line-height:1.7">'+(i.description||'暂无')+'</div></div>';
+    h+='<div class="card"><div class="avatar-row" onclick="showSeller('+i.sellerId+')"><div class="avatar avatar-sm">'+(i.sellerName?i.sellerName[0]:'?')+'</div><div><div class="seller-name">'+i.sellerName+'</div></div><span style="margin-left:auto;color:#999;font-size:12px">›</span></div></div>';
+    h+='<div class="card"><div class="card-title">💬评论</div><div id="comments-area"></div></div>';
+    $('detail-content').innerHTML=h;
+    $('detail-bottom').innerHTML='<div class="detail-price">🍞'+Number(i.price).toFixed(2)+'</div><button class="btn btn-primary btn-small" onclick="openContact()">联系对方</button>';
+    $('detail-bottom').style.display='flex';
+    if(i.id)apiGet('/api/comments/'+i.id).then(r2=>{const ca=$('comments-area');if(r2.code===0&&r2.data){ca.innerHTML=(r2.data.list||[]).map(c=>'<div class="comment"><div class="comment-header"><span class="comment-name">'+c.userName+'</span><span class="comment-time">'+c.createdAt+'</span></div><div class="comment-text">'+c.content+'</div></div>').join('')||'<div style="color:#bbb;text-align:center;padding:10px;font-size:12px">暂无评论</div>';}});
   });
 }
-
-// ===== 联系 =====
-function openContact() {
-  $('conPrice').textContent = CURRENT_ITEM ? '🍞'+Number(CURRENT_ITEM.price).toFixed(2) : '';
-  $('conDate').value=''; $('conTime').value=''; $('conLoc').value=''; $('conPhone').value='';
-  modal('contactModal',1);
-}
-function submitContact() {
-  var d=$('conDate').value, t=$('conTime').value, loc=$('conLoc').value, phone=$('conPhone').value;
+function showSeller(id){CUID=id;loadSellerInfo();showPage('seller');}
+function openContact(){if(!T){showLogin();return;}$('conPrice').textContent=CI?'🍞'+Number(CI.price).toFixed(2):'';$('conDate').value='';$('conTime').value='';$('conLoc').value='';$('conPhone').value='';modal('contactModal',1);}
+function submitContact(){
+  const d=$('conDate').value,t=$('conTime').value,loc=$('conLoc').value,phone=$('conPhone').value;
   if(!d||!t){toast('请选时间');return;}
-  api('POST','/api/orders',{itemId:CURRENT_ITEM.id,pickupTime:d+' '+t,pickupLocation:loc,contactPhone:phone},1).then(r=>{
-    modal('contactModal',0);
-    if(r.code===0){ var c=r.data&&r.data.itemContact; toast(c?'对方联系方式: '+c:'已通知对方'); }
-    else toast(r.message||'失败');
+  apiPost('/api/orders',{itemId:CI.id,pickupTime:d+' '+t,pickupLocation:loc,contactPhone:phone},1).then(r=>{modal('contactModal',0);if(r.code===0)toast('对方联系方式: '+(r.data&&r.data.itemContact||'已通知'));else toast(r.message||'失败');});
+}
+
+// ===== 卖家 =====
+function loadSellerInfo(){if(!CUID)return;$('seller-area').innerHTML='<div class="loading">加载中...</div>';showPage('seller');$('seller-bottom').style.display='none';
+  apiGet('/api/ratings/seller/'+CUID+'/info').then(r=>{
+    if(r.code!==0)return;$('seller-bottom').style.display='none';
+    const d=r.data;const u=d.user;const score=Number(d.avgScore||0);const full=Math.floor(score);const stars='★'.repeat(full)+'☆'.repeat(5-full);
+    let h='<div style="background:linear-gradient(135deg,#07c160,#05a34e);padding:40px 0 30px;text-align:center;color:#fff"><div class="avatar" style="margin:0 auto 10px;width:56px;height:56px;font-size:24px">'+(u.nickname?u.nickname[0]:'?')+'</div><div style="font-size:18px;font-weight:600">'+u.nickname+'</div><div style="font-size:13px;margin-top:6px">'+stars+' <span style="font-size:12px">'+d.ratingCount+'条评价</span></div></div>';
+    h+='<div class="card" style="margin-top:0"><div class="card-title">在售 ('+d.items.length+')</div><div class="grid">';
+    d.items.forEach(i=>{h+='<div class="item-card" onclick="loadDetail('+(i.id||i._id)+')"><img class="item-img" src="'+(i.images&&i.images[0]?API+i.images[0]:'')+'" onerror="this.style.display=\'none\'"><div class="item-body"><div class="item-title">'+i.title+'</div><div class="item-price">🍞'+Number(i.price).toFixed(2)+'</div></div></div>';});
+    h+='</div></div>';
+    if(d.items.length===0)h+='<div class="empty">暂无在售</div>';
+    $('seller-area').innerHTML=h;
   });
 }
 
 // ===== 发布 =====
-function publish() {
-  if(!TOKEN){doLogin();return;}
-  var title=$('pubTitle').value.trim(), cat=$('pubCat').value, price=parseFloat($('pubPrice').value), contact=$('pubContact').value.trim(), desc=$('pubDesc').value.trim();
-  if(!title){toast('请输入标题');return;}
-  if(!price||price<=0){toast('请输入心意');return;}
-  if(!cat){toast('请选分类');return;}
-  api('POST','/api/items',{title,category:cat,price,contact,description:desc},1).then(r=>{
-    if(r.code===0){toast('添加成功！');$('pubTitle').value='';$('pubPrice').value='';$('pubContact').value='';$('pubDesc').value='';$('pubCat').value='';showPage('home');loadItems();}
-    else toast(r.message||'失败');
-  });
+function publish(){
+  if(!T){showLogin();return;}
+  const title=$('pubTitle').value.trim(),cat=$('pubCat').value,price=parseFloat($('pubPrice').value),contact=$('pubContact').value.trim(),desc=$('pubDesc').value.trim();
+  if(!title||!price||!cat){toast('请填写完整信息');return;}
+  apiPost('/api/items',{title,category:cat,price,contact,description:desc},1).then(r=>{if(r.code===0){toast('成功！');$('pubTitle').value='';$('pubPrice').value='';$('pubContact').value='';$('pubDesc').value='';$('pubCat').value='';showPage('home');loadItems();}else toast(r.message);});
 }
 
 // ===== 个人中心 =====
 function loadProfile() {
-  var el=$('profileContent');
-  if(!TOKEN){el.innerHTML='<div class="card" style="text-align:center;padding:40px"><button class="btn btn-primary" onclick="doLogin()">登录</button></div>';return;}
-  var html='<div class="card" style="text-align:center;padding:24px"><div class="avatar" style="margin:0 auto 12px">'+(USER.nickname?USER.nickname[0]:'?')+'</div><div style="font-size:18px;font-weight:600">'+USER.nickname+'</div></div>';
-  html+='<div class="card"><div class="menu-item" onclick="loadMyItems()"><div class="menu-icon" style="background:#e8f5e9">📦</div><div class="menu-text">我的好物</div><span class="menu-arrow">›</span></div><div class="menu-item" onclick="loadNotice()"><div class="menu-icon" style="background:#fff7e6">📢</div><div class="menu-text">公告</div><span class="menu-arrow">›</span></div></div>';
-  html+='<div class="card"><div class="menu-item" onclick="logout()"><div class="menu-icon" style="background:#fff0f0">🚪</div><div class="menu-text" style="color:#ff4d4f">退出登录</div></div></div>';
-  el.innerHTML=html;
+  const el=$('profile-area');
+  if(!T){el.innerHTML='<div class="card" style="text-align:center;padding:30px"><button class="btn btn-primary" onclick="showLogin()">登录</button></div>';return;}
+  let h='<div class="card" style="text-align:center;padding:16px"><div class="avatar" style="margin:0 auto 8px">'+(U.nickname?U.nickname[0]:'?')+'</div><div style="font-size:16px;font-weight:600">'+U.nickname+'</div></div>';
+  h+='<div class="card"><div class="menu-item" onclick="loadMyItems()"><div class="menu-icon" style="background:#e8f5e9">📦</div><div class="menu-text">我的好物</div><span class="menu-arrow">›</span></div><div class="menu-item" onclick="loadMyOrders()"><div class="menu-icon" style="background:#fff7e6">📋</div><div class="menu-text">我的记录</div><span class="menu-arrow">›</span></div><div class="menu-item" onclick="loadFavs()"><div class="menu-icon" style="background:#fce4ec">❤️</div><div class="menu-text">收藏</div><span class="menu-arrow">›</span></div></div>';
+  h+='<div class="card"><div class="menu-item" onclick="showLogin()"><div class="menu-icon" style="background:#e3f2fd">🔄</div><div class="menu-text">切换账号</div></div><div class="menu-item" onclick="logout()"><div class="menu-icon" style="background:#fff0f0">🚪</div><div class="menu-text" style="color:#ff4d4f">退出</div></div></div>';
+  el.innerHTML=h;
 }
-
-function logout() {
-  if(confirm('确定退出？')){localStorage.clear();TOKEN='';USER={};toast('已退出');showPage('home');loadItems();loadProfile();}
-}
-
-// ===== 我的好物 =====
 function loadMyItems() {
-  api('GET','/api/items/my',{token:TOKEN},1).then(function(r){
-    if(r.code===0){
-      var items = r.data.list || [];
-      var html = '<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:12px">📦 我的好物</div>';
-      if(items.length===0) html+='<div style="color:#999;padding:20px;text-align:center">暂无好物</div>';
-      items.forEach(function(item){
-        html+='<div class="list-item"><div class="list-item-body"><div class="list-item-title">'+item.title+'</div><div class="list-item-price">🍞'+Number(item.price).toFixed(2)+'</div><div class="list-item-status">'+item.status+'</div></div></div>';
-      });
-      html+='</div>';
-      $('profileContent').innerHTML = html;
-    } else toast(r.message||'加载失败');
+  showPage('profile');
+  $('profile-area').innerHTML='<div class="loading">加载中...</div>';
+  apiGet('/api/items/my',1).then(r=>{
+    if(r.code!==0)return;
+    const items=r.data.list||[];
+    let h='<div class="tabs" style="margin-bottom:10px"><div class="tab-btn active" onclick="loadMyItems()">全部</div></div>';
+    if(items.length===0)h+='<div class="empty">暂无好物</div>';
+    items.forEach(i=>{
+      h+='<div class="list-item"><img class="list-item-img" src="'+(i.images&&i.images[0]?API+i.images[0]:'')+'" onerror="this.style.display=\'none\'"><div class="list-item-body"><div class="list-item-title">'+i.title+'</div><div class="list-item-sub">🍞'+Number(i.price).toFixed(2)+'</div><span class="tag tag-'+i.status+'">'+(i.status==='active'?'展示中':i.status==='sold'?'已完成':'已隐藏')+'</span></div></div>';
+    });
+    $('profile-area').innerHTML=h;
   });
 }
+function loadMyOrders() {
+  showPage('profile');
+  $('profile-area').innerHTML='<div class="loading">加载中...</div>';
+  Promise.all([apiGet('/api/orders/my',1),apiGet('/api/orders/sold',1)]).then(([buy,sell])=>{
+    const buys=(buy.data&&buy.data.list)||[],sells=(sell.data&&sell.data.list)||[];
+    let h='<div class="card"><div class="card-title">📋我买到的 ('+buys.length+')</div>';
+    if(buys.length===0)h+='<div style="color:#bbb;text-align:center;padding:10px;font-size:12px">无</div>';
+    buys.forEach(o=>{h+='<div class="list-item"><div class="list-item-body"><div class="list-item-title">'+o.itemTitle+'</div><div class="list-item-sub">'+o.pickupTime+' <span class="tag tag-'+o.status+'">'+(o.status==='pending'?'待确认':o.status==='completed'?'已完成':'已取消')+'</span></div></div></div>';});
+    h+='</div><div class="card"><div class="card-title">📋联系我的 ('+sells.length+')</div>';
+    if(sells.length===0)h+='<div style="color:#bbb;text-align:center;padding:10px;font-size:12px">无</div>';
+    sells.forEach(o=>{h+='<div class="list-item"><div class="list-item-body"><div class="list-item-title">'+o.itemTitle+'</div><div class="list-item-sub">'+o.pickupTime+' <span class="tag tag-'+o.status+'">'+(o.status==='pending'?'待确认':o.status==='completed'?'已完成':'已取消')+'</span></div></div></div>';});
+    h+='</div>';
+    $('profile-area').innerHTML=h;
+  });
+}
+function loadFavs() {
+  showPage('profile');
+  $('profile-area').innerHTML='<div class="loading">加载中...</div>';
+  apiGet('/api/favorites/my',1).then(r=>{
+    if(r.code!==0)return;
+    const items=r.data.list||[];
+    let h='<div class="card"><div class="card-title">❤️收藏 ('+items.length+')</div>';
+    if(items.length===0)h+='<div class="empty">暂无收藏</div>';
+    items.forEach(i=>{h+='<div class="list-item" onclick="loadDetail('+(i.id||i._id)+')"><img class="list-item-img" src="'+(i.images&&i.images[0]?API+i.images[0]:'')+'" onerror="this.style.display=\'none\'"><div class="list-item-body"><div class="list-item-title">'+i.title+'</div><div class="list-item-sub">🍞'+Number(i.price).toFixed(2)+'</div></div></div>';});
+    h+='</div>';
+    $('profile-area').innerHTML=h;
+  });
+}
+function logout(){if(confirm('退出？')){localStorage.clear();T='';U={};showPage('home');showLogin();loadItems();}}
 
 // ===== 公告 =====
-function loadNotice() {
-  api('GET','/api/announcements/latest').then(r=>{
-    if(r.code===0&&r.data){$('noticeTitle').textContent=r.data.title;$('noticeBody').textContent=r.data.content;modal('noticeModal',1);}
-    else toast('暂无公告');
-  });
-}
+function loadNotice(){apiGet('/api/announcements/latest').then(r=>{if(r.code===0&&r.data){$('noticeTitle').textContent=r.data.title;$('noticeBody').textContent=r.data.content;modal('noticeModal',1);}});}
 
 // ===== 初始化 =====
-function loadBanners() {
-  api('GET','/api/items',{page:1,category:''}).then(function(){});
-  var banners = ['📢 广告位招租','📢 广告位招租','📢 广告位招租'];
-  var html = '<div style="display:flex;gap:8px;padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px">';
-  banners.forEach(function(b){
-    html += '<div style="min-width:100%;height:120px;background:linear-gradient(135deg,#07c160,#05a34e);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600;letter-spacing:2px">'+b+'</div>';
-  });
-  html += '</div>';
-  $('bannerArea').innerHTML = html;
-}
-
-window.onload = function() {
-  initHome();
-  loadBanners();
-  loadItems();
-  loadProfile();
-  
-  // 自动登录
-  if(!TOKEN){
-    doLogin();
-  }
+window.onload=function(){
+  initHome();loadProfile();
+  if(T){$('home-content').style.display='';$('login-area').innerHTML='';}else showLogin();
 };
