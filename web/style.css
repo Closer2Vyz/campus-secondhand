@@ -1,9 +1,9 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root { --green: #07c160; --green-dark: #05a34e; --bg: #f8f8f8; --card: #fff; --text: #333; --text2: #666; --text3: #999; --border: #eee; --orange: #f60; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
 
 /* Header */
-.header { background: var(--green); padding: 44px 16px 12px; color: #fff; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+.header { background: var(--green); padding: max(44px, env(safe-area-inset-top, 20px)) 16px 12px; color: #fff; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 100; }
 .header-title { font-size: 18px; font-weight: 600; flex: 1; }
 .header-back { font-size: 16px; cursor: pointer; padding: 4px 8px; }
 .header-btn { font-size: 14px; cursor: pointer; padding: 4px 8px; }
@@ -36,9 +36,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica
 .sort-btn.active { color: var(--green); border-color: var(--green); }
 
 /* Item Grid */
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 8px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 6px; }
 .card-item { background: var(--card); border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.card-item-img { width: 100%; height: 160px; background: #f0f0f0; object-fit: cover; display: block; }
+.card-item-img { width: 100%; aspect-ratio: 1/1; background: #f0f0f0; object-fit: cover; display: block; }
 .card-item-body { padding: 10px 12px 12px; }
 .card-item-title { font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-item-price { font-size: 16px; color: var(--orange); font-weight: 700; margin-top: 4px; }
