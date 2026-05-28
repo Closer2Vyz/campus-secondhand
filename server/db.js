@@ -120,6 +120,12 @@ function initTables() {
       createdAt DATETIME DEFAULT (datetime('now','localtime'))
     );
   `);
+
+  // 迁移：为已有表添加新列
+  try { db.exec("ALTER TABLE users ADD COLUMN username TEXT DEFAULT ''"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN password TEXT DEFAULT ''"); } catch (e) {}
+    );
+  `);
 }
 
 module.exports = { getDB };
