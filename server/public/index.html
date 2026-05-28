@@ -235,7 +235,7 @@ function renderProfile(el){
   }
   el.innerHTML = `
 <div class="header"><span class="ht">我的</span><span></span></div>
-<div class="card" style="text-align:center;padding:24px"><div class="avatar" style="margin:0 auto 12px">${(USER.nickname||'?')[0]}</div><div style="font-size:18px;font-weight:600">${escHtml(USER.nickname)}</div></div>
+<div class="card" style="text-align:center;padding:24px"><div class="avatar" style="margin:0 auto 12px;cursor:pointer" onclick="editProfile()">${(USER.nickname||'?')[0]}</div><div style="font-size:18px;font-weight:600">${escHtml(USER.nickname)}</div><div style="font-size:12px;color:#07c160;margin-top:4px;cursor:pointer" onclick="editProfile()">✏️ 编辑资料</div></div>
 <div class="card"><div class="mi" onclick="go('myitems')"><div class="mi-icon" style="background:#e8f5e9">📦</div><div class="mi-text">我的好物</div><span>›</span></div><div class="mi" onclick="go('myorders')"><div class="mi-icon" style="background:#fff7e6">📋</div><div class="mi-text">我的记录</div><span>›</span></div><div class="mi" onclick="go('favorites')"><div class="mi-icon" style="background:#fce4ec">❤️</div><div class="mi-text">我的收藏</div><span>›</span></div></div>
 <div class="card"><div class="mi" onclick="showNotice()"><div class="mi-icon" style="background:#e3f2fd">📢</div><div class="mi-text">公告</div><span>›</span></div></div>
 <div class="card"><div class="mi" onclick="logout()"><div class="mi-icon" style="background:#fff0f0">🚪</div><div class="mi-text" style="color:#ff4d4f">退出登录</div></div></div>
@@ -295,6 +295,28 @@ function register(){
   });
 }
 
+function editProfile(){
+  $('app').innerHTML = `
+<div class="header"><span class="hb" onclick="go('profile')">← 返回</span><span class="ht">编辑资料</span><span></span></div>
+<div class="card" style="margin-top:4px">
+<div class="fg"><label>昵称</label><input class="fi" id="eName" value="${escHtml(USER.nickname||'')}"/></div>
+<div class="fg"><label>个人简介</label><input class="fi" id="eBio" value="${escHtml(USER.bio||'')}" placeholder="介绍一下自己"/></div>
+<span class="btn btn-primary" onclick="saveProfile()">保存</span>
+<span class="btn btn-secondary" style="margin-top:8px" onclick="go('profile')">取消</span>
+</div>`;
+}
+function saveProfile(){
+  let name = $('eName').value.trim();
+  let bio = $('eBio').value.trim();
+  if(!name){toast('请输入昵称');return;}
+  api('PUT','/api/auth/profile',{nickname:name,campus:bio},1).then(r=>{
+    if(r.code===0){
+      USER.nickname=r.data.nickname; USER.bio=r.data.campus;
+      localStorage.setItem('user',JSON.stringify(USER));
+      toast('已保存'); go('profile');
+    } else toast(r.message||'保存失败');
+  });
+}
 function logout(){
   if(confirm('确定退出？')){localStorage.clear();TOKEN='';USER={};toast('已退出');go('home');}
 }
