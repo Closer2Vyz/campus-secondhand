@@ -221,13 +221,29 @@ function loadProfile() {
   var el=$('profileContent');
   if(!TOKEN){el.innerHTML='<div class="card" style="text-align:center;padding:40px"><button class="btn btn-primary" onclick="doLogin()">登录</button></div>';return;}
   var html='<div class="card" style="text-align:center;padding:24px"><div class="avatar" style="margin:0 auto 12px">'+(USER.nickname?USER.nickname[0]:'?')+'</div><div style="font-size:18px;font-weight:600">'+USER.nickname+'</div></div>';
-  html+='<div class="card"><div class="menu-item" onclick="window.location.href=\''+API+'/api/items/my?token='+TOKEN+'\'"><div class="menu-icon" style="background:#e8f5e9">📦</div><div class="menu-text">我的好物</div><span class="menu-arrow">›</span></div><div class="menu-item" onclick="loadNotice()"><div class="menu-icon" style="background:#fff7e6">📢</div><div class="menu-text">公告</div><span class="menu-arrow">›</span></div></div>';
+  html+='<div class="card"><div class="menu-item" onclick="loadMyItems()"><div class="menu-icon" style="background:#e8f5e9">📦</div><div class="menu-text">我的好物</div><span class="menu-arrow">›</span></div><div class="menu-item" onclick="loadNotice()"><div class="menu-icon" style="background:#fff7e6">📢</div><div class="menu-text">公告</div><span class="menu-arrow">›</span></div></div>';
   html+='<div class="card"><div class="menu-item" onclick="logout()"><div class="menu-icon" style="background:#fff0f0">🚪</div><div class="menu-text" style="color:#ff4d4f">退出登录</div></div></div>';
   el.innerHTML=html;
 }
 
 function logout() {
   if(confirm('确定退出？')){localStorage.clear();TOKEN='';USER={};toast('已退出');showPage('home');loadItems();loadProfile();}
+}
+
+// ===== 我的好物 =====
+function loadMyItems() {
+  api('GET','/api/items/my',{token:TOKEN},1).then(function(r){
+    if(r.code===0){
+      var items = r.data.list || [];
+      var html = '<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:12px">📦 我的好物</div>';
+      if(items.length===0) html+='<div style="color:#999;padding:20px;text-align:center">暂无好物</div>';
+      items.forEach(function(item){
+        html+='<div class="list-item"><div class="list-item-body"><div class="list-item-title">'+item.title+'</div><div class="list-item-price">🍞'+Number(item.price).toFixed(2)+'</div><div class="list-item-status">'+item.status+'</div></div></div>';
+      });
+      html+='</div>';
+      $('profileContent').innerHTML = html;
+    } else toast(r.message||'加载失败');
+  });
 }
 
 // ===== 公告 =====
