@@ -94,7 +94,11 @@ async function initDB() {
   var initSqlJs = require('sql.js');
   var SQL = await initSqlJs({
     locateFile: function(file) {
-      return path.join(__dirname, 'node_modules', 'sql.js', 'dist', file);
+      // 尝试 server/node_modules 和根 node_modules
+      var p1 = path.join(__dirname, 'node_modules', 'sql.js', 'dist', file);
+      var p2 = path.join(__dirname, '..', 'node_modules', 'sql.js', 'dist', file);
+      if (require('fs').existsSync(p1)) return p1;
+      return p2;
     }
   });
 
