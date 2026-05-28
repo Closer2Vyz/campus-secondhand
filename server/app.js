@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const config = require('./config');
-const { getDB } = require('./db');
+const { getDB, initDB } = require('./db');
 
 // 路由
 const authRoutes = require('./routes/auth');
@@ -59,10 +59,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ code: 500, message: '服务器内部错误' });
 });
 
-// 启动 — 监听 0.0.0.0 让手机也能访问
-app.listen(config.port, '0.0.0.0', () => {
+// 先初始化数据库，再启动服务
+initDB().then(() => {
+  app.listen(config.port, '0.0.0.0', () => {
   console.log(`🏫 校内二手交易平台 API 已启动`);
   console.log(`   http://0.0.0.0:${config.port}  (局域网: http://192.168.1.103:${config.port})`);
   console.log(`   当前免费使用中`);
   console.log(`   数据库: ${path.join(__dirname, 'data.db')}`);
+  });
+}).catch(err => {
+  console.error('数据库初始化失败:', err);
+  process.exit(1);
 });

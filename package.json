@@ -2,7 +2,7 @@
   "name": "campus-secondhand",
   "version": "1.0.0",
   "dependencies": {
-    "better-sqlite3": "^11.0.0",
+    "sql.js": "^1.10.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
