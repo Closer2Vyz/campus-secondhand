@@ -12,7 +12,10 @@ const authMiddleware = require('../middleware/auth');
 
 // 头像上传配置
 const avatarStorage = multer.diskStorage({
-  destination: path.join(__dirname, '..', config.upload.dir),
+  destination: function(req, file, cb) {
+    var dir = path.isAbsolute(config.upload.dir) ? config.upload.dir : path.join(__dirname, '..', config.upload.dir);
+    cb(null, dir);
+  },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname) || '.jpg';
     cb(null, `avatar_${uuidv4()}${ext}`);

@@ -22,7 +22,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 静态文件：上传的图片 + 前端页面
-app.use('/uploads', express.static(path.join(__dirname, config.upload.dir)));
+var uploadDir = path.isAbsolute(config.upload.dir) ? config.upload.dir : path.join(__dirname, config.upload.dir);
+app.use('/uploads', express.static(uploadDir));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 前端页面入口
