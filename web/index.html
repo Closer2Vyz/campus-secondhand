@@ -227,6 +227,9 @@ function doPublish(){
   let t=$('pT').value.trim(), c=$('pC').value, p=parseFloat($('pP').value), co=$('pCo').value.trim(), d=$('pD').value.trim();
   if(!t){toast('请输入标题');return;}
   if(!p||p<=0){toast('请输入心意');return;}
+  // 重新读取 token 确保是最新的
+  TOKEN = localStorage.getItem('token')||'';
+  if(!TOKEN){toast('请先登录');go('profile');return;}
   showLoading();
   
   let fileInput = $('pImg');
